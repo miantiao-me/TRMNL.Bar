@@ -1,0 +1,28 @@
+{
+  "name": "trmnl-bar",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Display TRMNL screens in Metrix.Bar as a virtual device or mirror.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vp build --watch",
+    "build": "vp build",
+    "check": "vp check",
+    "test": "vp test"
+  },
+  "dependencies": {
+    "@noble/ciphers": "2.4.0",
+    "valibot": "1.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "sharp": "0.35.5",
+    "tsx": "4.23.15",
+    "vite-plus": "1.6.0"
+  },
+  "engines": {
+    "node": "^24.22.2"
+  },
+  "packageManager": "pnpm@12.21.0"
+}

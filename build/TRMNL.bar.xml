@@ -1,0 +1,47 @@
+<bar protocol-version="0" id="trmnl-bar" title="TRMNL" version="0.2.0" min-app-version="0.3.2"
+  description="Connect to a TRMNL server or mirror an existing device" category="productivity" icon="__TRMNL_ICON__"
+  widget="true" refresh="1h">
+  <permissions>
+    <network origin="{{ inputs.server }}" from-url="true" allow-http="true" />
+    <network origin="{{ inputs.image_origin }}" from-url="true" allow-http="true" />
+  </permissions>
+  <inputs>
+    <input name="mode" type="select" label="Mode" default="device"
+      help="Device follows the server’s playlist. Mirror shows an existing device’s current screen.">
+      <locale lang="zh-Hans" label="运行模式" help="设备模式按服务端播放列表轮播。镜像模式显示已有设备的当前画面。" />
+      <option value="device" label="Device">
+        <locale lang="zh-Hans" label="设备" />
+      </option>
+      <option value="mirror" label="Mirror">
+        <locale lang="zh-Hans" label="镜像" />
+      </option>
+    </input>
+    <input name="server" type="string" label="Server URL" default="https://trmnl.com" required="true"
+      help="Use the base URL of the official or self-hosted server, including any deployment prefix.">
+      <locale lang="zh-Hans" label="服务端地址" help="填写官方或自托管服务端的基础地址，可包含部署路径前缀。" />
+    </input>
+    <input name="device_id" type="string" label="Device ID"
+      help="Leave blank for a stable virtual ID, or enter a registered ID. If registration is required, right-click TRMNL in the menu bar for the ID and pairing code. On trmnl.com, follow your account’s BYOD requirements.">
+      <locale lang="zh-Hans" label="设备 ID" help="设备模式下可填写已登记的 ID，留空会生成稳定的虚拟 ID。需要登记时，右键点击菜单栏中的 TRMNL 查看设备 ID 和配对码。连接 trmnl.com 时，按账号提示满足 BYOD 要求。" />
+    </input>
+    <input name="access_token" type="secret" label="Device token"
+      help="Mirror mode requires the Device API Key from the device’s developer settings. In device mode, leave blank for automatic pairing.">
+      <locale lang="zh-Hans" label="设备令牌" help="镜像模式需填写设备开发设置中的 Device API Key。设备模式可留空自动配对。" />
+    </input>
+    <input name="mirror_refresh" type="integer" label="Mirror refresh interval (seconds)" default="300"
+      help="Time between mirror updates, from 10 to 86,400 seconds.">
+      <locale lang="zh-Hans" label="镜像刷新间隔（秒）" help="镜像画面的刷新间隔，可设为 10 至 86,400 秒。" />
+    </input>
+    <input name="image_origin" type="string" label="Image server URL"
+      help="If screens come from a separate CDN, enter its base URL and allow that origin in Metrix.Bar.">
+      <locale lang="zh-Hans" label="图片服务地址" help="如果画面来自独立 CDN，填写其基础地址并在 Metrix.Bar 中授权该来源。" />
+    </input>
+    <input name="tray_icon" type="string" label="Menu bar icon" placeholder="lucide:monitor"
+      help="Enter an Iconify name, an emoji, or short text. Leave blank for the monitor icon.">
+      <locale lang="zh-Hans" label="菜单栏图标" help="填写 Iconify 名称、表情或短文本。留空使用显示器图标。" />
+    </input>
+  </inputs>
+  <script apis="app auth image crypto timers localStorage shell"><![CDATA[
+__TRMNL_WORKER__
+  ]]></script>
+</bar>
