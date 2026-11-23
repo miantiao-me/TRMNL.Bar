@@ -27,6 +27,10 @@
 - 令牌失效时，填入新的 Device API Key 可恢复自动刷新，也可手动刷新重试。
 - 「断开连接」会清除画面、设备令牌和恢复检查点，重启后仍保持断开。点「连接」恢复，按所选模式和服务端要求填写新令牌。
 
+## 开发
+
+在当前目录运行 `pnpm install`、`pnpm check`、`pnpm test` 和 `pnpm build`。构建产物为 `dist/TRMNL.bar`。
+
 ## 许可证
 
 [Apache License 2.0](LICENSE)。

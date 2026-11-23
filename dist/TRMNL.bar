@@ -1,6 +1,6 @@
 <bar protocol-version="0" id="trmnl-bar" title="TRMNL" version="0.2.0" min-app-version="0.3.2"
   description="Connect to a TRMNL server or mirror an existing device" category="productivity" icon="lucide:monitor"
-  widget="true" refresh="1h">
+  license="Apache-2.0" widget="true" refresh="1h">
   <permissions>
     <network origin="{{ inputs.server }}" from-url="true" allow-http="true" />
     <network origin="{{ inputs.image_origin }}" from-url="true" allow-http="true" />

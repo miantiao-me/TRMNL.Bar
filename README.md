@@ -27,6 +27,10 @@ Right-click the TRMNL menu bar item to view connection status, open dashboard se
 - If the token expires, enter a new Device API Key to resume automatic refresh. You can also try a manual refresh.
 - **Disconnect** clears the screen and deletes its token and recovery checkpoint. The dashboard stays disconnected across restarts. Select **Connect** to resume and supply a fresh token if your server or mode requires one.
 
+## Development
+
+Run `pnpm install`, `pnpm check`, `pnpm test`, and `pnpm build` in this directory. The build writes `dist/TRMNL.bar`.
+
 ## License
 
 [Apache License 2.0](LICENSE).
