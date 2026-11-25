@@ -1,9 +1,11 @@
 <bar protocol-version="0" id="trmnl-bar" title="TRMNL" version="0.2.0" min-app-version="0.3.2"
   description="Connect to a TRMNL server or mirror an existing device" category="productivity" icon="lucide:monitor"
   license="Apache-2.0" widget="true" refresh="1h">
+  <locale lang="zh-Hans" description="连接 TRMNL 服务端，或镜像现有设备的画面" />
   <permissions>
     <network origin="{{ inputs.server }}" from-url="true" allow-http="true" />
     <network origin="{{ inputs.image_origin }}" from-url="true" allow-http="true" />
+    <network origin="https://esm.sh" />
   </permissions>
   <inputs>
     <input name="mode" type="select" label="Mode" default="device"
@@ -42,1233 +44,238 @@
     </input>
   </inputs>
   <script apis="app auth image crypto timers localStorage shell"><![CDATA[
-/*
-Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
-
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-
-   1. Definitions.
-
-      "License" shall mean the terms and conditions for use, reproduction,
-      and distribution as defined by Sections 1 through 9 of this document.
-
-      "Licensor" shall mean the copyright owner or entity authorized by
-      the copyright owner that is granting the License.
-
-      "Legal Entity" shall mean the union of the acting entity and all
-      other entities that control, are controlled by, or are under common
-      control with that entity. For the purposes of this definition,
-      "control" means (i) the power, direct or indirect, to cause the
-      direction or management of such entity, whether by contract or
-      otherwise, or (ii) ownership of fifty percent (50%) or more of the
-      outstanding shares, or (iii) beneficial ownership of such entity.
-
-      "You" (or "Your") shall mean an individual or Legal Entity
-      exercising permissions granted by this License.
-
-      "Source" form shall mean the preferred form for making modifications,
-      including but not limited to software source code, documentation
-      source, and configuration files.
-
-      "Object" form shall mean any form resulting from mechanical
-      transformation or translation of a Source form, including but
-      not limited to compiled object code, generated documentation,
-      and conversions to other media types.
-
-      "Work" shall mean the work of authorship, whether in Source or
-      Object form, made available under the License, as indicated by a
-      copyright notice that is included in or attached to the work
-      (an example is provided in the Appendix below).
-
-      "Derivative Works" shall mean any work, whether in Source or Object
-      form, that is based on (or derived from) the Work and for which the
-      editorial revisions, annotations, elaborations, or other modifications
-      represent, as a whole, an original work of authorship. For the purposes
-      of this License, Derivative Works shall not include works that remain
-      separable from, or merely link (or bind by name) to the interfaces of,
-      the Work and Derivative Works thereof.
-
-      "Contribution" shall mean any work of authorship, including
-      the original version of the Work and any modifications or additions
-      to that Work or Derivative Works thereof, that is intentionally
-      submitted to Licensor for inclusion in the Work by the copyright owner
-      or by an individual or Legal Entity authorized to submit on behalf of
-      the copyright owner. For the purposes of this definition, "submitted"
-      means any form of electronic, verbal, or written communication sent
-      to the Licensor or its representatives, including but not limited to
-      communication on electronic mailing lists, source code control systems,
-      and issue tracking systems that are managed by, or on behalf of, the
-      Licensor for the purpose of discussing and improving the Work, but
-      excluding communication that is conspicuously marked or otherwise
-      designated in writing by the copyright owner as "Not a Contribution."
-
-      "Contributor" shall mean Licensor and any individual or Legal Entity
-      on behalf of whom a Contribution has been received by Licensor and
-      subsequently incorporated within the Work.
-
-   2. Grant of Copyright License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      copyright license to reproduce, prepare Derivative Works of,
-      publicly display, publicly perform, sublicense, and distribute the
-      Work and such Derivative Works in Source or Object form.
-
-   3. Grant of Patent License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      (except as stated in this section) patent license to make, have made,
-      use, offer to sell, sell, import, and otherwise transfer the Work,
-      where such license applies only to those patent claims licensable
-      by such Contributor that are necessarily infringed by their
-      Contribution(s) alone or by combination of their Contribution(s)
-      with the Work to which such Contribution(s) was submitted. If You
-      institute patent litigation against any entity (including a
-      cross-claim or counterclaim in a lawsuit) alleging that the Work
-      or a Contribution incorporated within the Work constitutes direct
-      or contributory patent infringement, then any patent licenses
-      granted to You under this License for that Work shall terminate
-      as of the date such litigation is filed.
-
-   4. Redistribution. You may reproduce and distribute copies of the
-      Work or Derivative Works thereof in any medium, with or without
-      modifications, and in Source or Object form, provided that You
-      meet the following conditions:
-
-      (a) You must give any other recipients of the Work or
-          Derivative Works a copy of this License; and
-
-      (b) You must cause any modified files to carry prominent notices
-          stating that You changed the files; and
-
-      (c) You must retain, in the Source form of any Derivative Works
-          that You distribute, all copyright, patent, trademark, and
-          attribution notices from the Source form of the Work,
-          excluding those notices that do not pertain to any part of
-          the Derivative Works; and
-
-      (d) If the Work includes a "NOTICE" text file as part of its
-          distribution, then any Derivative Works that You distribute must
-          include a readable copy of the attribution notices contained
-          within such NOTICE file, excluding those notices that do not
-          pertain to any part of the Derivative Works, in at least one
-          of the following places: within a NOTICE text file distributed
-          as part of the Derivative Works; within the Source form or
-          documentation, if provided along with the Derivative Works; or,
-          within a display generated by the Derivative Works, if and
-          wherever such third-party notices normally appear. The contents
-          of the NOTICE file are for informational purposes only and
-          do not modify the License. You may add Your own attribution
-          notices within Derivative Works that You distribute, alongside
-          or as an addendum to the NOTICE text from the Work, provided
-          that such additional attribution notices cannot be construed
-          as modifying the License.
-
-      You may add Your own copyright statement to Your modifications and
-      may provide additional or different license terms and conditions
-      for use, reproduction, or distribution of Your modifications, or
-      for any such Derivative Works as a whole, provided Your use,
-      reproduction, and distribution of the Work otherwise complies with
-      the conditions stated in this License.
-
-   5. Submission of Contributions. Unless You explicitly state otherwise,
-      any Contribution intentionally submitted for inclusion in the Work
-      by You to the Licensor shall be under the terms and conditions of
-      this License, without any additional terms or conditions.
-      Notwithstanding the above, nothing herein shall supersede or modify
-      the terms of any separate license agreement you may have executed
-      with Licensor regarding such Contributions.
-
-   6. Trademarks. This License does not grant permission to use the trade
-      names, trademarks, service marks, or product names of the Licensor,
-      except as required for reasonable and customary use in describing the
-      origin of the Work and reproducing the content of the NOTICE file.
-
-   7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
-      Contributor provides its Contributions) on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-      implied, including, without limitation, any warranties or conditions
-      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-      PARTICULAR PURPOSE. You are solely responsible for determining the
-      appropriateness of using or redistributing the Work and assume any
-      risks associated with Your exercise of permissions under this License.
-
-   8. Limitation of Liability. In no event and under no legal theory,
-      whether in tort (including negligence), contract, or otherwise,
-      unless required by applicable law (such as deliberate and grossly
-      negligent acts) or agreed to in writing, shall any Contributor be
-      liable to You for damages, including any direct, indirect, special,
-      incidental, or consequential damages of any character arising as a
-      result of this License or out of the use or inability to use the
-      Work (including but not limited to damages for loss of goodwill,
-      work stoppage, computer failure or malfunction, or any and all
-      other commercial damages or losses), even if such Contributor
-      has been advised of the possibility of such damages.
-
-   9. Accepting Warranty or Additional Liability. While redistributing
-      the Work or Derivative Works thereof, You may choose to offer,
-      and charge a fee for, acceptance of support, warranty, indemnity,
-      or other liability obligations and/or rights consistent with this
-      License. However, in accepting such obligations, You may act only
-      on Your own behalf and on Your sole responsibility, not on behalf
-      of any other Contributor, and only if You agree to indemnify,
-      defend, and hold each Contributor harmless for any liability
-      incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.
-
-   END OF TERMS AND CONDITIONS
-
-   APPENDIX: How to apply the Apache License to your work.
-
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
-
-   Copyright [yyyy] [name of copyright owner]
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-MIT License
-
-Copyright (c) Fabian Hiller
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-The MIT License (MIT)
-
-Copyright (c) 2022 Paul Miller (https://paulmillr.com)
-Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the “Software”), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-*/
+import * as v from "https://esm.sh/valibot@1.5.0?bundle&target=es2022";
+import { gcm } from "https://esm.sh/@noble/ciphers@2.4.0/aes.js?target=es2022";
+import { bytesToHex, hexToBytes } from "https://esm.sh/@noble/ciphers@2.4.0/utils.js?target=es2022";
 // src/errors.ts
-var e = class extends Error {
+var DeviceError = class extends Error {
 	code;
 	retryAfter;
 	origin;
-	constructor(e, t = 3e4, n = "") {
-		super(e), this.code = e, this.retryAfter = t, this.origin = n;
+	constructor(code, retryAfter = 3e4, origin = "") {
+		super(code);
+		this.code = code;
+		this.retryAfter = retryAfter;
+		this.origin = origin;
 	}
 };
-function t(t) {
-	return t instanceof e ? t.code === "cancelled" : typeof t != "object" || !t ? !1 : "code" in t && t.code === "cancelled" || "name" in t && t.name === "AbortError" || "message" in t && typeof t.message == "string" && /context cancel(?:ed|led)/i.test(t.message);
+function cancelled(error) {
+	if (error instanceof DeviceError) return error.code === "cancelled";
+	if (typeof error !== "object" || error === null) return false;
+	return "code" in error && error.code === "cancelled" || "name" in error && error.name === "AbortError" || "message" in error && typeof error.message === "string" && /context cancel(?:ed|led)/i.test(error.message);
 }
-function n(n, r) {
-	return n instanceof e ? n : t(n) ? new e("cancelled") : n instanceof Error && n.name === "TimeoutError" ? new e("timeout") : new e(r);
+function failure(error, fallback) {
+	if (error instanceof DeviceError) return error;
+	if (cancelled(error)) return new DeviceError("cancelled");
+	if (error instanceof Error && error.name === "TimeoutError") return new DeviceError("timeout");
+	return new DeviceError(fallback);
 }
 // src/config.ts
-var r = {
+var screen = {
 	model: "og",
 	width: 800,
 	height: 480
-}, i = "lucide:monitor";
-function a(t) {
+};
+var dashboardIcon = "lucide:monitor";
+function httpURL(value) {
 	try {
-		let e = new URL(t);
-		if (!["https:", "http:"].includes(e.protocol) || e.username || e.password || e.href.length > 4096) throw Error();
-		return e;
+		const url = new URL(value);
+		if (!["https:", "http:"].includes(url.protocol) || url.username || url.password || url.href.length > 4096) throw new Error();
+		return url;
 	} catch {
-		throw new e("configuration");
+		throw new DeviceError("configuration");
 	}
 }
-function o(t, n) {
-	let r = a(typeof t.server == "string" ? t.server.trim() : "https://trmnl.com");
-	if (r.search || r.hash) throw new e("configuration");
-	r.pathname = `${r.pathname.replace(/\/+$/, "")}/`;
-	let i = typeof t.device_id == "string" && t.device_id.trim() ? t.device_id.trim() : n;
-	if (!/^[\x21-\x7e]{1,128}$/.test(i)) throw new e("configuration");
-	let o = t.mode === "mirror" ? "mirror" : "device", s = t.mirror_refresh, c = s == null || typeof s == "string" && !s.trim() ? 300 : typeof s == "number" || typeof s == "string" ? Number(s) : NaN;
-	if (!Number.isFinite(c)) throw new e("configuration");
-	let l = Math.round(Math.min(Math.max(c, 10), 86400) * 1e3), u = typeof t.image_origin == "string" && t.image_origin.trim() ? a(t.image_origin.trim()).origin : "";
+function configuration(inputs, generatedId) {
+	const server = httpURL(typeof inputs.server === "string" ? inputs.server.trim() : "https://trmnl.com");
+	if (server.search || server.hash) throw new DeviceError("configuration");
+	server.pathname = `${server.pathname.replace(/\/+$/, "")}/`;
+	const id = typeof inputs.device_id === "string" && inputs.device_id.trim() ? inputs.device_id.trim() : generatedId;
+	if (!/^[\x21-\x7e]{1,128}$/.test(id)) throw new DeviceError("configuration");
+	const mode = inputs.mode === "mirror" ? "mirror" : "device";
+	const mirrorRefresh = inputs.mirror_refresh;
+	const seconds = mirrorRefresh == null || typeof mirrorRefresh === "string" && !mirrorRefresh.trim() ? 300 : typeof mirrorRefresh === "number" || typeof mirrorRefresh === "string" ? Number(mirrorRefresh) : NaN;
+	if (!Number.isFinite(seconds)) throw new DeviceError("configuration");
+	const mirrorRefreshDelay = Math.round(Math.min(Math.max(seconds, 10), 86400) * 1e3);
+	const imageOrigin = typeof inputs.image_origin === "string" && inputs.image_origin.trim() ? httpURL(inputs.image_origin.trim()).origin : "";
 	return {
-		server: r.href,
-		imageOrigin: u,
-		id: i,
-		mode: o,
-		mirrorRefreshDelay: l,
-		binding: JSON.stringify([r.href, i])
+		server: server.href,
+		imageOrigin,
+		id,
+		mode,
+		mirrorRefreshDelay,
+		binding: JSON.stringify([server.href, id])
 	};
 }
-function s() {
-	let e = crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(6));
-	return e[0] = e[0] & 252 | 2, Array.from(e, (e) => e.toString(16).padStart(2, "0")).join(":").toUpperCase();
+function virtualDeviceId() {
+	const bytes = crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(6));
+	bytes[0] = bytes[0] & 252 | 2;
+	return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join(":").toUpperCase();
 }
-// node_modules/.pnpm/valibot@1.5.0/node_modules/valibot/dist/index.mjs
-var c = {
-	lang: void 0,
-	message: void 0,
-	abortEarly: void 0,
-	abortPipeEarly: void 0
-};
-/* @__NO_SIDE_EFFECTS__ */
-function l(e) {
-	return e ? {
-		lang: e?.lang ?? void 0,
-		message: e?.message,
-		abortEarly: e?.abortEarly ?? void 0,
-		abortPipeEarly: e?.abortPipeEarly ?? void 0
-	} : c;
-}
-/* @__NO_SIDE_EFFECTS__ */
-function u(e) {
-	let t = typeof e;
-	return t === "string" ? `"${e}"` : t === "number" || t === "bigint" || t === "boolean" ? `${e}` : t === "object" || t === "function" ? (e && Object.getPrototypeOf(e)?.constructor?.name) ?? "null" : t;
-}
-function d(e, t, n, r, i) {
-	let a = i && "input" in i ? i.input : n.value, o = i?.expected ?? e.expects ?? null, s = i?.received ?? /* @__PURE__ */ u(a), c = {
-		kind: e.kind,
-		type: e.type,
-		input: a,
-		expected: o,
-		received: s,
-		message: `Invalid ${t}: ${o ? `Expected ${o} but r` : "R"}eceived ${s}`,
-		requirement: e.requirement,
-		path: i?.path,
-		issues: i?.issues,
-		lang: r.lang,
-		abortEarly: r.abortEarly,
-		abortPipeEarly: r.abortPipeEarly
-	}, l = e.kind === "schema", d = i?.message ?? e.message ?? (e.reference, c.lang, void 0) ?? (l ? (c.lang, void 0) : null) ?? r.message ?? (c.lang, void 0);
-	d !== void 0 && (c.message = typeof d == "function" ? d(c) : d), l && (n.typed = !1), n.issues ? n.issues.push(c) : n.issues = [c];
-}
-/* @__NO_SIDE_EFFECTS__ */
-function f(e, t) {
-	return e === t || Number.isNaN(e) && Number.isNaN(t);
-}
-/* @__NO_SIDE_EFFECTS__ */
-function p(e, t) {
-	let n = [...new Set(e)];
-	return n.length > 1 ? `(${n.join(` ${t} `)})` : n[0] ?? "never";
-}
-function m(e) {
-	return e["~standard"] = {
-		version: 1,
-		vendor: "valibot",
-		validate: (t) => e["~run"]({ value: t }, /* @__PURE__ */ l())
-	}, e;
-}
-/* @__NO_SIDE_EFFECTS__ */
-function h(e) {
-	return {
-		kind: "validation",
-		type: "finite",
-		reference: h,
-		async: !1,
-		expects: null,
-		requirement: Number.isFinite,
-		message: e,
-		"~run"(e, t) {
-			return e.typed && !this.requirement(e.value) && d(this, "finite", e, t), e;
-		}
-	};
-}
-/* @__NO_SIDE_EFFECTS__ */
-function g(e) {
-	return {
-		kind: "validation",
-		type: "integer",
-		reference: g,
-		async: !1,
-		expects: null,
-		requirement: Number.isInteger,
-		message: e,
-		"~run"(e, t) {
-			return e.typed && !this.requirement(e.value) && d(this, "integer", e, t), e;
-		}
-	};
-}
-/* @__NO_SIDE_EFFECTS__ */
-function ee(e, t) {
-	return {
-		kind: "validation",
-		type: "max_length",
-		reference: ee,
-		async: !1,
-		expects: `<=${e}`,
-		requirement: e,
-		message: t,
-		"~run"(e, t) {
-			return e.typed && e.value.length > this.requirement && d(this, "length", e, t, { received: `${e.value.length}` }), e;
-		}
-	};
-}
-/* @__NO_SIDE_EFFECTS__ */
-function _(e, t) {
-	return {
-		kind: "validation",
-		type: "max_value",
-		reference: _,
-		async: !1,
-		expects: `<=${e instanceof Date ? e.toJSON() : /* @__PURE__ */ u(e)}`,
-		requirement: e,
-		message: t,
-		"~run"(e, t) {
-			return e.typed && !(e.value <= this.requirement) && d(this, "value", e, t, { received: e.value instanceof Date ? e.value.toJSON() : /* @__PURE__ */ u(e.value) }), e;
-		}
-	};
-}
-/* @__NO_SIDE_EFFECTS__ */
-function te(e, t) {
-	return {
-		kind: "validation",
-		type: "min_length",
-		reference: te,
-		async: !1,
-		expects: `>=${e}`,
-		requirement: e,
-		message: t,
-		"~run"(e, t) {
-			return e.typed && e.value.length < this.requirement && d(this, "length", e, t, { received: `${e.value.length}` }), e;
-		}
-	};
-}
-/* @__NO_SIDE_EFFECTS__ */
-function v(e, t) {
-	return {
-		kind: "validation",
-		type: "min_value",
-		reference: v,
-		async: !1,
-		expects: `>=${e instanceof Date ? e.toJSON() : /* @__PURE__ */ u(e)}`,
-		requirement: e,
-		message: t,
-		"~run"(e, t) {
-			return e.typed && !(e.value >= this.requirement) && d(this, "value", e, t, { received: e.value instanceof Date ? e.value.toJSON() : /* @__PURE__ */ u(e.value) }), e;
-		}
-	};
-}
-/* @__NO_SIDE_EFFECTS__ */
-function ne(e, t) {
-	return {
-		kind: "transformation",
-		type: "parse_json",
-		reference: ne,
-		config: e,
-		message: t,
-		async: !1,
-		"~run"(e, t) {
-			try {
-				e.value = JSON.parse(e.value, this.config?.reviver);
-			} catch (n) {
-				if (n instanceof Error) d(this, "JSON", e, t, { received: `"${n.message}"` }), e.typed = !1;
-				else throw n;
-			}
-			return e;
-		}
-	};
-}
-/* @__NO_SIDE_EFFECTS__ */
-function y(e, t) {
-	return {
-		kind: "validation",
-		type: "regex",
-		reference: y,
-		async: !1,
-		expects: `${e}`,
-		requirement: e,
-		message: t,
-		"~run"(e, t) {
-			return e.typed && !this.requirement.test(e.value) && d(this, "format", e, t), e;
-		}
-	};
-}
-/* @__NO_SIDE_EFFECTS__ */
-function re(e) {
-	return {
-		kind: "transformation",
-		type: "transform",
-		reference: re,
-		async: !1,
-		operation: e,
-		"~run"(e) {
-			return e.value = this.operation(e.value), e;
-		}
-	};
-}
-var ie = { abortEarly: !0 };
-/* @__NO_SIDE_EFFECTS__ */
-function ae(e, t, n) {
-	return typeof e.fallback == "function" ? e.fallback(t, n) : e.fallback;
-}
-/* @__NO_SIDE_EFFECTS__ */
-function oe(e, t) {
-	return m({
-		...e,
-		fallback: t,
-		"~run"(t, n) {
-			let r = e["~run"](t, n);
-			return r.issues ? {
-				typed: !0,
-				value: /* @__PURE__ */ ae(this, r, n)
-			} : r;
-		}
-	});
-}
-/* @__NO_SIDE_EFFECTS__ */
-function se(e, t, n) {
-	return typeof e.default == "function" ? e.default(t, n) : e.default;
-}
-/* @__NO_SIDE_EFFECTS__ */
-function ce(e, t) {
-	return !e["~run"]({ value: t }, ie).issues;
-}
-/* @__NO_SIDE_EFFECTS__ */
-function b(e) {
-	return m({
-		kind: "schema",
-		type: "boolean",
-		reference: b,
-		expects: "boolean",
-		async: !1,
-		message: e,
-		"~run"(e, t) {
-			return typeof e.value == "boolean" ? e.typed = !0 : d(this, "type", e, t), e;
-		}
-	});
-}
-/* @__NO_SIDE_EFFECTS__ */
-function le(e, t) {
-	return m({
-		kind: "schema",
-		type: "custom",
-		reference: le,
-		expects: "unknown",
-		async: !1,
-		check: e,
-		message: t,
-		"~run"(e, t) {
-			return this.check(e.value) ? e.typed = !0 : d(this, "type", e, t), e;
-		}
-	});
-}
-/* @__NO_SIDE_EFFECTS__ */
-function x(e, t) {
-	return m({
-		kind: "schema",
-		type: "literal",
-		reference: x,
-		expects: /* @__PURE__ */ u(e),
-		async: !1,
-		literal: e,
-		message: t,
-		"~run"(e, t) {
-			return /* @__PURE__ */ f(e.value, this.literal) ? e.typed = !0 : d(this, "type", e, t), e;
-		}
-	});
-}
-/* @__NO_SIDE_EFFECTS__ */
-function S(e) {
-	return m({
-		kind: "schema",
-		type: "number",
-		reference: S,
-		expects: "number",
-		async: !1,
-		message: e,
-		"~run"(e, t) {
-			return typeof e.value == "number" && !isNaN(e.value) ? e.typed = !0 : d(this, "type", e, t), e;
-		}
-	});
-}
-/* @__NO_SIDE_EFFECTS__ */
-function C(e, t) {
-	return m({
-		kind: "schema",
-		type: "object",
-		reference: C,
-		expects: "Object",
-		async: !1,
-		entries: e,
-		message: t,
-		"~run"(e, t) {
-			let n = e.value;
-			if (n && typeof n == "object") {
-				e.typed = !0, e.value = {};
-				for (let r in this.entries) {
-					let i = this.entries[r];
-					if (r in n || (i.type === "exact_optional" || i.type === "optional" || i.type === "nullish") && i.default !== void 0) {
-						let a = r in n ? n[r] : /* @__PURE__ */ se(i), o = i["~run"]({ value: a }, t);
-						if (o.issues) {
-							let i = {
-								type: "object",
-								origin: "value",
-								input: n,
-								key: r,
-								value: a
-							};
-							for (let t of o.issues) t.path ? t.path.unshift(i) : t.path = [i], e.issues?.push(t);
-							if (e.issues ||= o.issues, t.abortEarly) {
-								e.typed = !1;
-								break;
-							}
-						}
-						o.typed || (e.typed = !1), e.value[r] = o.value;
-					} else if (i.fallback !== void 0) e.value[r] = /* @__PURE__ */ ae(i);
-					else if (i.type !== "exact_optional" && i.type !== "optional" && i.type !== "nullish" && (d(this, "key", e, t, {
-						input: void 0,
-						expected: `"${r}"`,
-						path: [{
-							type: "object",
-							origin: "key",
-							input: n,
-							key: r,
-							value: n[r]
-						}]
-					}), t.abortEarly)) break;
-				}
-			} else d(this, "type", e, t);
-			return e;
-		}
-	});
-}
-/* @__NO_SIDE_EFFECTS__ */
-function w(e, t) {
-	return m({
-		kind: "schema",
-		type: "optional",
-		reference: w,
-		expects: `(${e.expects} | undefined)`,
-		async: !1,
-		wrapped: e,
-		default: t,
-		"~run"(e, t) {
-			return e.value === void 0 && (this.default !== void 0 && (e.value = /* @__PURE__ */ se(this, e, t)), e.value === void 0) ? (e.typed = !0, e) : this.wrapped["~run"](e, t);
-		}
-	});
-}
-/* @__NO_SIDE_EFFECTS__ */
-function T(e, t) {
-	return m({
-		kind: "schema",
-		type: "picklist",
-		reference: T,
-		expects: /* @__PURE__ */ p(e.map(u), "|"),
-		async: !1,
-		options: e,
-		message: t,
-		"~run"(e, t) {
-			return this.options.includes(e.value) ? e.typed = !0 : d(this, "type", e, t), e;
-		}
-	});
-}
-/* @__NO_SIDE_EFFECTS__ */
-function E(e) {
-	return m({
-		kind: "schema",
-		type: "string",
-		reference: E,
-		expects: "string",
-		async: !1,
-		message: e,
-		"~run"(e, t) {
-			return typeof e.value == "string" ? e.typed = !0 : d(this, "type", e, t), e;
-		}
-	});
-}
-/* @__NO_SIDE_EFFECTS__ */
-function D(...e) {
-	return m({
-		...e[0],
-		pipe: e,
-		"~run"(t, n) {
-			for (let r of e) if (r.kind !== "metadata") {
-				if (t.issues && (r.kind === "schema" || r.kind === "transformation")) {
-					t.typed = !1;
-					break;
-				}
-				t.issues && (n.abortEarly || n.abortPipeEarly) || (t = r["~run"](t, n));
-			}
-			return t;
-		}
-	});
-}
-/* @__NO_SIDE_EFFECTS__ */
-function O(e, t, n) {
-	let r = e["~run"]({ value: t }, /* @__PURE__ */ l(n));
-	return {
-		typed: r.typed,
-		success: !r.issues,
-		output: r.value,
-		issues: r.issues
-	};
-}
-// node_modules/.pnpm/@noble+ciphers@2.4.0/node_modules/@noble/ciphers/utils.js
-function k(e) {
-	return e instanceof Uint8Array || ArrayBuffer.isView(e) && e.constructor.name === "Uint8Array" && "BYTES_PER_ELEMENT" in e && e.BYTES_PER_ELEMENT === 1;
-}
-var A = (e) => e ? `"${e}" ` : "";
-function ue(e, t = "") {
-	if (typeof e != "boolean") throw TypeError(A(t) + "expected boolean, got type=" + typeof e);
-	return e;
-}
-function de(e, t = "") {
-	if (typeof e != "number") throw TypeError(A(t) + "expected number, got " + typeof e);
-	if (!Number.isSafeInteger(e) || e < 0) throw RangeError(A(t) + "expected integer >= 0, got " + e);
-	return e;
-}
-function j(e, t, n = "") {
-	if (k(e) && (t === void 0 || e.length === t)) return e;
-	t !== void 0 && de(t, "length");
-	let r = k(e), i = t === void 0 ? "" : ` of length ${t}`, a = r ? `length=${e.length}` : `type=${typeof e}`, o = A(n) + "expected Uint8Array" + i + ", got " + a;
-	throw r ? RangeError(o) : TypeError(o);
-}
-function fe(e, t = !0) {
-	if (e.destroyed) throw Error("hash was destroyed");
-	if (t && e.finished) throw Error("digest() was already called");
-}
-function pe(e, t) {
-	j(e, void 0, "output");
-	let n = t.outputLen;
-	if (!(e.length >= n)) throw RangeError("\"output\" expected length >= " + n);
-}
-function me(e, t) {
-	if (pe(e, t), !B(e)) throw Error("invalid output, must be aligned");
-}
-function he(e) {
-	return new Uint8Array(e.buffer, e.byteOffset, e.byteLength);
-}
-function M(e) {
-	return new Uint32Array(e.buffer, e.byteOffset, Math.floor(e.byteLength / 4));
-}
-function N(...e) {
-	for (let t = 0; t < e.length; t++) e[t].fill(0);
-}
-function P(e) {
-	return new DataView(e.buffer, e.byteOffset, e.byteLength);
-}
-var F = new Uint8Array(new Uint32Array([287454020]).buffer)[0] === 68;
-function ge(e) {
-	return e << 24 & 4278190080 | e << 8 & 16711680 | e >>> 8 & 65280 | e >>> 24 & 255;
-}
-var I = F ? (e) => e : (e) => ge(e) >>> 0;
-function _e(e) {
-	for (let t = 0; t < e.length; t++) e[t] = ge(e[t]);
-	return e;
-}
-var L = F ? (e) => e : _e, ve = typeof Uint8Array.from([]).toHex == "function" && typeof Uint8Array.fromHex == "function", ye = /* @__PURE__ */ Array.from({ length: 256 }, (e, t) => t.toString(16).padStart(2, "0"));
-function R(e) {
-	if (j(e), ve) return e.toHex();
-	let t = "";
-	for (let n = 0; n < e.length; n++) t += ye[e[n]];
-	return t;
-}
-function be(e) {
-	return e >= 48 && e <= 57 ? e - 48 : e >= 65 && e <= 70 ? e - 55 : e >= 97 && e <= 102 ? e - 87 : void 0;
-}
-function z(e) {
-	if (typeof e != "string") throw TypeError("hex string expected, got " + typeof e);
-	if (ve) try {
-		return Uint8Array.fromHex(e);
-	} catch (e) {
-		throw e instanceof SyntaxError ? RangeError(e.message) : e;
-	}
-	let t = e.length, n = t / 2;
-	if (t % 2) throw RangeError("hex string expected, got unpadded hex of length " + t);
-	let r = new Uint8Array(n);
-	for (let t = 0, i = 0; t < n; t++, i += 2) {
-		let n = be(e.charCodeAt(i)), a = be(e.charCodeAt(i + 1));
-		if (n === void 0 || a === void 0) {
-			let t = e[i] + e[i + 1];
-			throw RangeError("hex string expected, got non-hex character \"" + t + "\" at index " + i);
-		}
-		r[t] = n * 16 + a;
-	}
-	return r;
-}
-function xe(e, t) {
-	if (e = j(e), t = j(t), e.length !== t.length) return !1;
-	let n = 0;
-	for (let r = 0; r < e.length; r++) n |= e[r] ^ t[r];
-	return n === 0;
-}
-function Se(e, t, n) {
-	let r = t, i = n || (() => []), a = (e, t) => r(t, ...i(e)).update(e).digest(), o = r(new Uint8Array(e), ...i(/* @__PURE__ */ new Uint8Array()));
-	return a.outputLen = o.outputLen, a.blockLen = o.blockLen, a.create = (e, ...t) => r(e, ...t), a;
-}
-var Ce = (e, t) => {
-	function n(n, ...r) {
-		if (j(n, void 0, "key"), e.nonceLength !== void 0) {
-			let t = r[0];
-			j(t, e.varSizeNonce ? void 0 : e.nonceLength, "nonce");
-		}
-		let i = e.tagLength, a = e.nonceLength === void 0 ? 0 : 1;
-		if (!e.withAAD) {
-			for (let e = a; e < r.length; e++) if (k(r[e])) throw Error("AAD not supported");
-		}
-		e.withAAD && r[a] !== void 0 && j(r[a], void 0, "AAD");
-		let o = t(n, ...r), s = (e, t) => {
-			if (t !== void 0) {
-				if (e !== 2) throw Error("cipher output not supported");
-				j(t, void 0, "output");
-			}
-		}, c = !1;
-		return {
-			encrypt(e, t) {
-				if (c) throw Error("cannot encrypt() twice with same key + nonce");
-				return c = !0, j(e, void 0, "data"), s(o.encrypt.length, t), o.encrypt(e, t);
-			},
-			decrypt(e, t) {
-				if (j(e, void 0, "data"), i && e.length < i) throw Error("\"ciphertext\" expected length >= tagLength=" + i);
-				return s(o.decrypt.length, t), o.decrypt(e, t);
-			}
-		};
-	}
-	return Object.assign(n, e), n;
-};
-function we(e, t, n = !0) {
-	if (t === void 0) return new Uint8Array(e);
-	if (j(t, e, "output"), n && !B(t)) throw Error("invalid output, must be aligned");
-	return t;
-}
-function Te(e, t, n) {
-	de(e), de(t), ue(n);
-	let r = /* @__PURE__ */ new Uint8Array(16), i = P(r);
-	return i.setBigUint64(0, BigInt(t), n), i.setBigUint64(8, BigInt(e), n), r;
-}
-function B(e) {
-	return e.byteOffset % 4 == 0;
-}
-function V(e) {
-	return Uint8Array.from(j(e));
-}
-// node_modules/.pnpm/@noble+ciphers@2.4.0/node_modules/@noble/ciphers/_polyval.js
-var H = 16, Ee = /* @__PURE__ */ new Uint8Array(16), U = /* @__PURE__ */ M(Ee), De = 225, Oe = (e, t, n, r) => {
-	let i = r & 1;
-	return {
-		s3: n << 31 | r >>> 1,
-		s2: t << 31 | n >>> 1,
-		s1: e << 31 | t >>> 1,
-		s0: e >>> 1 ^ De << 24 & -(i & 1)
-	};
-}, W = (e) => (e >>> 0 & 255) << 24 | (e >>> 8 & 255) << 16 | (e >>> 16 & 255) << 8 | e >>> 24 & 255, ke = (e) => e > 65536 ? 8 : e > 1024 ? 4 : 2, Ae = class {
-	blockLen = H;
-	outputLen = H;
-	s0 = 0;
-	s1 = 0;
-	s2 = 0;
-	s3 = 0;
-	finished = !1;
-	destroyed = !1;
-	t;
-	W;
-	windowSize;
-	constructor(e, t) {
-		j(e, 16, "key"), e = V(e);
-		let n = P(e), r = n.getUint32(0, !1), i = n.getUint32(4, !1), a = n.getUint32(8, !1), o = n.getUint32(12, !1), s = [];
-		for (let e = 0; e < 128; e++) s.push({
-			s0: W(r),
-			s1: W(i),
-			s2: W(a),
-			s3: W(o)
-		}), {s0: r, s1: i, s2: a, s3: o} = Oe(r, i, a, o);
-		let c = ke(t || 1024);
-		if (![
-			1,
-			2,
-			4,
-			8
-		].includes(c)) throw Error("ghash: invalid window size, expected 2, 4 or 8");
-		this.W = c;
-		let l = 128 / c, u = this.windowSize = 2 ** c, d = [];
-		for (let e = 0; e < l; e++) for (let t = 0; t < u; t++) {
-			let n = 0, r = 0, i = 0, a = 0;
-			for (let o = 0; o < c; o++) {
-				if (!(t >>> c - o - 1 & 1)) continue;
-				let { s0: l, s1: u, s2: d, s3: f } = s[c * e + o];
-				n ^= l, r ^= u, i ^= d, a ^= f;
-			}
-			d.push({
-				s0: n,
-				s1: r,
-				s2: i,
-				s3: a
-			});
-		}
-		this.t = d;
-	}
-	_updateBlock(e, t, n, r) {
-		e ^= this.s0, t ^= this.s1, n ^= this.s2, r ^= this.s3;
-		let { W: i, t: a, windowSize: o } = this, s = 0, c = 0, l = 0, u = 0, d = (1 << i) - 1, f = 0;
-		for (let p of [
-			e,
-			t,
-			n,
-			r
-		]) for (let e = 0; e < 4; e++) {
-			let t = p >>> 8 * e & 255;
-			for (let e = 8 / i - 1; e >= 0; e--) {
-				let n = t >>> i * e & d, { s0: r, s1: p, s2: m, s3: h } = a[f * o + n];
-				s ^= r, c ^= p, l ^= m, u ^= h, f += 1;
-			}
-		}
-		this.s0 = s, this.s1 = c, this.s2 = l, this.s3 = u;
-	}
-	update(e) {
-		fe(this), j(e), e = V(e);
-		let t = M(e), n = Math.floor(e.length / H), r = e.length % H;
-		for (let e = 0; e < n; e++) this._updateBlock(I(t[e * 4 + 0]), I(t[e * 4 + 1]), I(t[e * 4 + 2]), I(t[e * 4 + 3]));
-		return r && (Ee.set(e.subarray(n * H)), this._updateBlock(I(U[0]), I(U[1]), I(U[2]), I(U[3])), N(U)), this;
-	}
-	destroy() {
-		this.destroyed = !0;
-		let { t: e } = this;
-		for (let t of e) t.s0 = 0, t.s1 = 0, t.s2 = 0, t.s3 = 0;
-	}
-	digestInto(e) {
-		fe(this), me(e, this), this.finished = !0;
-		let { s0: t, s1: n, s2: r, s3: i } = this, a = M(e);
-		a[0] = t, a[1] = n, a[2] = r, a[3] = i, F || L(a.subarray(0, H / 4));
-	}
-	digest() {
-		let e = new Uint8Array(H);
-		return this.digestInto(e), this.destroy(), e;
-	}
-}, je = /* @__PURE__ */ Se(16, (e, t) => new Ae(e, t), (e) => [e.length]), G = 16, Me = 4, K = /* @__PURE__ */ new Uint8Array(G), Ne = 283;
-function Pe(e) {
-	if (![
-		16,
-		24,
-		32
-	].includes(e.length)) throw Error("\"aes key\" expected Uint8Array of length 16/24/32, got length=" + e.length);
-}
-function q(e) {
-	return e << 1 ^ Ne & -(e >> 7);
-}
-function Fe(e, t) {
-	let n = 0;
-	for (; t > 0; t >>= 1) n ^= e & -(t & 1), e = q(e);
-	return n;
-}
-var Ie = /* @__PURE__ */ (() => {
-	let e = /* @__PURE__ */ new Uint8Array(256);
-	for (let t = 0, n = 1; t < 256; t++, n ^= q(n)) e[t] = n;
-	let t = /* @__PURE__ */ new Uint8Array(256);
-	t[0] = 99;
-	for (let n = 0; n < 255; n++) {
-		let r = e[255 - n];
-		r |= r << 8, t[e[n]] = (r ^ r >> 4 ^ r >> 5 ^ r >> 6 ^ r >> 7 ^ 99) & 255;
-	}
-	return N(e), t;
-})(), Le = (e) => e << 24 | e >>> 8, Re = (e) => e << 8 | e >>> 24;
-function ze(e, t) {
-	if (e.length !== 256) throw Error("wrong sbox length");
-	let n = (/* @__PURE__ */ new Uint32Array(256)).map((n, r) => t(e[r])), r = n.map(Re), i = r.map(Re), a = i.map(Re), o = /* @__PURE__ */ new Uint32Array(65536), s = /* @__PURE__ */ new Uint32Array(65536), c = /* @__PURE__ */ new Uint16Array(65536);
-	for (let t = 0; t < 256; t++) for (let l = 0; l < 256; l++) {
-		let u = t * 256 + l;
-		o[u] = n[t] ^ r[l], s[u] = i[t] ^ a[l], c[u] = e[t] << 8 | e[l];
-	}
-	return {
-		sbox: e,
-		sbox2: c,
-		T0: n,
-		T1: r,
-		T2: i,
-		T3: a,
-		T01: o,
-		T23: s
-	};
-}
-var Be = /* @__PURE__ */ ze(Ie, (e) => Fe(e, 3) << 24 | e << 16 | e << 8 | Fe(e, 2)), Ve = /* @__PURE__ */ (() => {
-	let e = /* @__PURE__ */ new Uint8Array(16);
-	for (let t = 0, n = 1; t < 16; t++, n = q(n)) e[t] = n;
-	return e;
-})();
-function He(e) {
-	j(e);
-	let t = e.length;
-	Pe(e);
-	let { sbox2: n } = Be, r = [];
-	F && B(e) || r.push(e = V(e));
-	let i = L(M(e)), a = i.length, o = (e) => Y(n, e, e, e, e), s = new Uint32Array(t + 28);
-	s.set(i);
-	for (let e = a; e < s.length; e++) {
-		let t = s[e - 1];
-		e % a === 0 ? t = o(Le(t)) ^ Ve[e / a - 1] : a > 6 && e % a === 4 && (t = o(t)), s[e] = s[e - a] ^ t;
-	}
-	return N(...r), s;
-}
-function J(e, t, n, r, i, a) {
-	return e[n << 8 & 65280 | r >>> 8 & 255] ^ t[i >>> 8 & 65280 | a >>> 24 & 255];
-}
-function Y(e, t, n, r, i) {
-	return e[t & 255 | n & 65280] | e[r >>> 16 & 255 | i >>> 16 & 65280] << 16;
-}
-function Ue(e, t, n, r, i) {
-	let { sbox2: a, T01: o, T23: s } = Be, c = 0;
-	t ^= e[c++], n ^= e[c++], r ^= e[c++], i ^= e[c++];
-	let l = e.length / 4 - 2;
-	for (let a = 0; a < l; a++) {
-		let a = e[c++] ^ J(o, s, t, n, r, i), l = e[c++] ^ J(o, s, n, r, i, t), u = e[c++] ^ J(o, s, r, i, t, n), d = e[c++] ^ J(o, s, i, t, n, r);
-		t = a, n = l, r = u, i = d;
-	}
-	return {
-		s0: e[c++] ^ Y(a, t, n, r, i),
-		s1: e[c++] ^ Y(a, n, r, i, t),
-		s2: e[c++] ^ Y(a, r, i, t, n),
-		s3: e[c++] ^ Y(a, i, t, n, r)
-	};
-}
-function X(e, t, n, r, i) {
-	j(n, G, "nonce"), j(r), i = we(r.length, i);
-	let a = n, o = M(a), s = P(a), c = M(r), l = M(i), u = t ? 0 : 12, d = r.length, f = s.getUint32(u, t);
-	for (let n = 0; n + 4 <= c.length; n += 4) {
-		let { s0: r, s1: i, s2: a, s3: d } = Ue(e, I(o[0]), I(o[1]), I(o[2]), I(o[3]));
-		l[n + 0] = c[n + 0] ^ I(r), l[n + 1] = c[n + 1] ^ I(i), l[n + 2] = c[n + 2] ^ I(a), l[n + 3] = c[n + 3] ^ I(d), f = f + 1 >>> 0, s.setUint32(u, f, t);
-	}
-	let p = G * Math.floor(c.length / Me);
-	if (p < d) {
-		let { s0: t, s1: n, s2: a, s3: s } = Ue(e, I(o[0]), I(o[1]), I(o[2]), I(o[3])), c = new Uint32Array([
-			t,
-			n,
-			a,
-			s
-		]);
-		L(c);
-		let l = he(c);
-		for (let e = p, t = 0; e < d; e++, t++) i[e] = r[e] ^ l[t];
-		N(c);
-	}
-	return i;
-}
-function We(e, t, n, r, i) {
-	let a = i ? i.length : 0, o = e.create(n, r.length + a);
-	i && o.update(i);
-	let s = Te(8 * r.length, 8 * a, t);
-	o.update(r), o.update(s);
-	let c = o.digest();
-	return N(s), c;
-}
-var Ge = /* @__PURE__ */ Ce({
-	blockSize: 16,
-	nonceLength: 12,
-	tagLength: 16,
-	withAAD: !0,
-	varSizeNonce: !0
-}, function(e, t, n) {
-	if (t.length < 8) throw Error("aes/gcm: invalid nonce length");
-	function r(e, t, r) {
-		let i = We(je, !1, e, r, n);
-		for (let e = 0; e < t.length; e++) i[e] ^= t[e];
-		return i;
-	}
-	function i() {
-		let n = He(e), r = K.slice(), i = K.slice();
-		if (X(n, !1, i, i, r), t.length === 12) i.set(t);
-		else {
-			let e = K.slice();
-			P(e).setBigUint64(8, BigInt(t.length * 8), !1);
-			let n = je.create(r).update(t).update(e);
-			n.digestInto(i), n.destroy();
-		}
-		return {
-			xk: n,
-			authKey: r,
-			counter: i,
-			tagMask: X(n, !1, i, K)
-		};
-	}
-	return {
-		encrypt(e) {
-			let { xk: t, authKey: n, counter: a, tagMask: o } = i(), s = new Uint8Array(e.length + 16), c = [
-				t,
-				n,
-				a,
-				o
-			];
-			B(e) || c.push(e = V(e)), X(t, !1, a, e, s.subarray(0, e.length));
-			let l = r(n, o, s.subarray(0, s.length - 16));
-			return c.push(l), s.set(l, e.length), N(...c), s;
-		},
-		decrypt(e) {
-			let { xk: t, authKey: n, counter: a, tagMask: o } = i(), s = [
-				t,
-				n,
-				o,
-				a
-			];
-			B(e) || s.push(e = V(e));
-			let c = e.subarray(0, -16), l = e.subarray(-16), u = r(n, o, c);
-			if (s.push(u), !xe(u, l)) throw N(...s), Error("aes-gcm: invalid tag");
-			let d = X(t, !1, a, c);
-			return N(...s), d;
-		}
-	};
-}), Ke = "trmnl:device:v1", qe = "trmnl-device-token-v1", Je = /* @__PURE__ */ C({
-	src: /* @__PURE__ */ D(/* @__PURE__ */ E(), /* @__PURE__ */ y(/^metrix-image:\/\/[a-f0-9]{64}$/)),
-	width: /* @__PURE__ */ D(/* @__PURE__ */ S(), /* @__PURE__ */ g(), /* @__PURE__ */ v(1), /* @__PURE__ */ _(4096)),
-	height: /* @__PURE__ */ D(/* @__PURE__ */ S(), /* @__PURE__ */ g(), /* @__PURE__ */ v(1), /* @__PURE__ */ _(4096)),
-	format: /* @__PURE__ */ x("png")
-}), Ye = /* @__PURE__ */ w(/* @__PURE__ */ T(["device", "mirror"]), "device"), Xe = /* @__PURE__ */ D(/* @__PURE__ */ C({
-	version: /* @__PURE__ */ x(1),
-	generatedId: /* @__PURE__ */ E(),
-	binding: /* @__PURE__ */ E(),
-	mode: Ye,
-	connection: /* @__PURE__ */ w(/* @__PURE__ */ T([
+// src/storage/state.ts
+var stateKey = "trmnl:device:v1";
+var credentialKind = "trmnl-device-token-v1";
+var image = v.object({
+	src: v.pipe(v.string(), v.regex(/^metrix-image:\/\/[a-f0-9]{64}$/)),
+	width: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4096)),
+	height: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4096)),
+	format: v.literal("png")
+});
+var mode = v.optional(v.picklist(["device", "mirror"]), "device");
+var state = v.pipe(v.object({
+	version: v.literal(1),
+	generatedId: v.string(),
+	binding: v.string(),
+	mode,
+	connection: v.optional(v.picklist([
 		"connected",
 		"disconnecting",
 		"disconnected"
 	])),
-	disconnected: /* @__PURE__ */ w(/* @__PURE__ */ b()),
-	needsToken: /* @__PURE__ */ w(/* @__PURE__ */ b(), !1),
-	model: /* @__PURE__ */ T([
+	disconnected: v.optional(v.boolean()),
+	needsToken: v.optional(v.boolean(), false),
+	model: v.picklist([
 		"",
 		"og",
 		"x"
 	]),
-	image: /* @__PURE__ */ oe(/* @__PURE__ */ w(Je), void 0),
-	filename: /* @__PURE__ */ E(),
-	nextPollAt: /* @__PURE__ */ D(/* @__PURE__ */ S(), /* @__PURE__ */ h()),
-	retryAt: /* @__PURE__ */ w(/* @__PURE__ */ D(/* @__PURE__ */ S(), /* @__PURE__ */ h()), 0),
-	friendlyId: /* @__PURE__ */ E(),
-	waiting: /* @__PURE__ */ w(/* @__PURE__ */ b(), !1),
-	revision: /* @__PURE__ */ w(/* @__PURE__ */ D(/* @__PURE__ */ S(), /* @__PURE__ */ g(), /* @__PURE__ */ v(0)), 0)
-}), /* @__PURE__ */ re(({ disconnected: e, connection: t, ...n }) => ({
-	...n,
-	connection: t ?? (e ? "disconnecting" : "connected")
-}))), Ze = /* @__PURE__ */ C({
-	revision: /* @__PURE__ */ D(/* @__PURE__ */ S(), /* @__PURE__ */ g(), /* @__PURE__ */ v(1)),
-	nextPollAt: /* @__PURE__ */ D(/* @__PURE__ */ S(), /* @__PURE__ */ h()),
-	mode: Ye,
-	model: /* @__PURE__ */ T(["og", "x"]),
-	imageURL: /* @__PURE__ */ D(/* @__PURE__ */ E(), /* @__PURE__ */ te(1)),
-	filename: /* @__PURE__ */ E(),
-	pairing: /* @__PURE__ */ b(),
-	updateFirmware: /* @__PURE__ */ b()
-}), Qe = /* @__PURE__ */ C({
-	kind: /* @__PURE__ */ x(qe),
-	binding: /* @__PURE__ */ E(),
-	token: /* @__PURE__ */ E(),
-	key: /* @__PURE__ */ w(/* @__PURE__ */ D(/* @__PURE__ */ E(), /* @__PURE__ */ y(/^[a-f0-9]{64}$/)))
+	image: v.fallback(v.optional(image), void 0),
+	filename: v.string(),
+	nextPollAt: v.pipe(v.number(), v.finite()),
+	retryAt: v.optional(v.pipe(v.number(), v.finite()), 0),
+	friendlyId: v.string(),
+	waiting: v.optional(v.boolean(), false),
+	revision: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0)), 0)
+}), v.transform(({ disconnected, connection, ...fields }) => ({
+	...fields,
+	connection: connection ?? (disconnected ? "disconnecting" : "connected")
+})));
+var frameSchema = v.object({
+	revision: v.pipe(v.number(), v.integer(), v.minValue(1)),
+	nextPollAt: v.pipe(v.number(), v.finite()),
+	mode,
+	model: v.picklist(["og", "x"]),
+	imageURL: v.pipe(v.string(), v.minLength(1)),
+	filename: v.string(),
+	pairing: v.boolean(),
+	updateFirmware: v.boolean()
 });
-function Z(e) {
+var credentialSchema = v.object({
+	kind: v.literal(credentialKind),
+	binding: v.string(),
+	token: v.string(),
+	key: v.optional(v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/)))
+});
+function parseJSON(text) {
 	try {
-		return JSON.parse(e);
+		return JSON.parse(text);
 	} catch {
 		return;
 	}
 }
-function $e(e, t) {
-	let n = "";
+function restore(storage, makeId) {
+	let raw = "";
 	try {
-		n = e.getItem("trmnl:device:v1") ?? "";
+		raw = storage.getItem("trmnl:device:v1") ?? "";
 	} catch {}
-	let r = /* @__PURE__ */ O(Xe, n.length <= 16384 ? Z(n) : void 0);
-	return r.success ? r.output : {
+	const result = v.safeParse(state, raw.length <= 16384 ? parseJSON(raw) : void 0);
+	return result.success ? result.output : {
 		version: 1,
-		generatedId: t(),
+		generatedId: makeId(),
 		binding: "",
 		mode: "device",
 		connection: "connected",
-		needsToken: !1,
+		needsToken: false,
 		model: "",
 		filename: "",
 		nextPollAt: 0,
 		retryAt: 0,
 		friendlyId: "",
-		waiting: !1,
+		waiting: false,
 		revision: 0
 	};
 }
 // src/storage/checkpoint.ts
-var et = "trmnl:frame:v1", tt = /* @__PURE__ */ C({
-	nonce: /* @__PURE__ */ D(/* @__PURE__ */ E(), /* @__PURE__ */ y(/^[a-f0-9]{24}$/)),
-	data: /* @__PURE__ */ D(/* @__PURE__ */ E(), /* @__PURE__ */ y(/^(?:[a-f0-9]{2}){16,}$/))
-}), nt = () => R(crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(32))), rt = new TextEncoder();
-function it(e, t, n) {
-	let r = crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(12)), i = Ge(z(t), r, rt.encode(n));
+var frameKey = "trmnl:frame:v1";
+var sealedFrame = v.object({
+	nonce: v.pipe(v.string(), v.regex(/^[a-f0-9]{24}$/)),
+	data: v.pipe(v.string(), v.regex(/^(?:[a-f0-9]{2}){16,}$/))
+});
+var newKey = () => bytesToHex(crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(32)));
+var encoder = new TextEncoder();
+function seal(frame, key, binding) {
+	const nonce = crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(12));
+	const cipher = gcm(hexToBytes(key), nonce, encoder.encode(binding));
 	return JSON.stringify({
-		nonce: R(r),
-		data: R(i.encrypt(rt.encode(JSON.stringify(e))))
+		nonce: bytesToHex(nonce),
+		data: bytesToHex(cipher.encrypt(encoder.encode(JSON.stringify(frame))))
 	});
 }
-function at(e, t, n) {
+function open(raw, key, binding) {
 	try {
-		if (e.length > 524288) return;
-		let r = /* @__PURE__ */ O(tt, Z(e));
-		if (!r.success) return;
-		let i = Ge(z(t), z(r.output.nonce), rt.encode(n)), a = /* @__PURE__ */ O(Ze, Z(new TextDecoder().decode(i.decrypt(z(r.output.data)))));
-		return a.success ? a.output : void 0;
+		if (raw.length > 524288) return;
+		const parsed = v.safeParse(sealedFrame, parseJSON(raw));
+		if (!parsed.success) return;
+		const cipher = gcm(hexToBytes(key), hexToBytes(parsed.output.nonce), encoder.encode(binding));
+		const result = v.safeParse(frameSchema, parseJSON(new TextDecoder().decode(cipher.decrypt(hexToBytes(parsed.output.data)))));
+		return result.success ? result.output : void 0;
 	} catch {
 		return;
 	}
 }
 // src/storage/credentials.ts
-var ot = class {
+var Credentials = class {
 	host;
 	storage;
 	writing = Promise.resolve();
-	constructor(e, t) {
-		this.host = e, this.storage = t;
+	constructor(host, storage) {
+		this.host = host;
+		this.storage = storage;
 	}
-	async read(e, t) {
-		await t.wait(this.writing);
-		let n = this.raw().trim(), r = Z(n), i = /* @__PURE__ */ O(Qe, r);
-		if (i.success) {
-			let t = i.output;
-			return t.binding === e ? {
-				...t,
-				frame: t.key ? at(this.storage.getItem("trmnl:frame:v1") ?? "", t.key, e) : void 0
-			} : this.empty(e);
+	async read(binding, operation) {
+		await operation.wait(this.writing);
+		const raw = this.raw().trim();
+		const value = parseJSON(raw);
+		const result = v.safeParse(credentialSchema, value);
+		if (result.success) {
+			const credential = result.output;
+			if (credential.binding !== binding) return this.empty(binding);
+			return {
+				...credential,
+				frame: credential.key ? open(this.storage.getItem("trmnl:frame:v1") ?? "", credential.key, binding) : void 0
+			};
 		}
-		return !n || /* @__PURE__ */ ce(/* @__PURE__ */ C({ kind: /* @__PURE__ */ x("trmnl-device-token-v1") }), r) ? this.empty(e) : this.save(e, n, t);
+		if (!raw || v.is(v.object({ kind: v.literal("trmnl-device-token-v1") }), value)) return this.empty(binding);
+		return this.save(binding, raw, operation);
 	}
-	async save(t, n, r) {
-		if (/[\r\n]/.test(n)) throw new e("credentials");
+	async save(binding, token, operation) {
+		if (/[\r\n]/.test(token)) throw new DeviceError("credentials");
 		return this.write(async () => {
-			let e = this.raw(), r = /* @__PURE__ */ O(Qe, Z(e)), i = {
-				kind: qe,
-				binding: t,
-				token: n,
-				key: (r.success && r.output.binding === t ? r.output.key : void 0) ?? nt()
-			}, a = JSON.stringify(i);
-			return e !== a && await this.host.setSecret("access_token", a), i;
-		}, r);
+			const raw = this.raw();
+			const current = v.safeParse(credentialSchema, parseJSON(raw));
+			const credential = {
+				kind: credentialKind,
+				binding,
+				token,
+				key: (current.success && current.output.binding === binding ? current.output.key : void 0) ?? newKey()
+			};
+			const encoded = JSON.stringify(credential);
+			if (raw !== encoded) await this.host.setSecret("access_token", encoded);
+			return credential;
+		}, operation);
 	}
-	async checkpoint(e, t, n) {
-		let { binding: r, token: i } = e, a = e.key ?? (await this.save(r, i, n)).key;
-		n.check(), this.storage.setItem(et, it(t, a, r));
+	async checkpoint(credential, frame, operation) {
+		const { binding, token } = credential;
+		const key = credential.key ?? (await this.save(binding, token, operation)).key;
+		operation.check();
+		this.storage.setItem(frameKey, seal(frame, key, binding));
 	}
-	async clear(e) {
+	async clear(operation) {
 		await this.write(async () => {
-			await this.host.deleteSecret("access_token"), e.check(), this.storage.removeItem(et);
-		}, e);
+			await this.host.deleteSecret("access_token");
+			operation.check();
+			this.storage.removeItem(frameKey);
+		}, operation);
 	}
 	raw() {
 		try {
@@ -1277,22 +284,28 @@ var ot = class {
 			return "";
 		}
 	}
-	empty(e) {
+	empty(binding) {
 		return {
-			kind: qe,
-			binding: e,
+			kind: credentialKind,
+			binding,
 			token: ""
 		};
 	}
-	write(e, t) {
-		let n = this.writing.then(() => (t.check(), e()));
-		return this.writing = n.catch(() => {}), t.wait(n, "credentials");
+	write(action, operation) {
+		const task = this.writing.then(() => {
+			operation.check();
+			return action();
+		});
+		this.writing = task.catch(() => {});
+		return operation.wait(task, "credentials");
 	}
-}, st = class {
+};
+// src/runtime/operation.ts
+var Operation = class {
 	controller = new AbortController();
 	signal = this.controller.signal;
-	aborted = new Promise((e, t) => {
-		this.signal.addEventListener("abort", () => t(this.signal.reason), { once: !0 });
+	aborted = new Promise((_, reject) => {
+		this.signal.addEventListener("abort", () => reject(this.signal.reason), { once: true });
 	});
 	timer = setTimeout(() => this.controller.abort(new DOMException("Timed out", "TimeoutError")), 12e3);
 	check() {
@@ -1304,306 +317,355 @@ var ot = class {
 	close() {
 		clearTimeout(this.timer);
 	}
-	async wait(e, t) {
+	async wait(task, code) {
 		try {
-			return await Promise.race([e, this.aborted]);
-		} catch (e) {
-			throw t ? n(e, t) : e;
+			return await Promise.race([task, this.aborted]);
+		} catch (error) {
+			throw code ? failure(error, code) : error;
 		} finally {
 			this.check();
 		}
 	}
-}, ct = "1.6.0", lt = [
+};
+// src/protocol/transport.ts
+var firmwareVersion = "1.6.0";
+var redirects = [
 	301,
 	302,
 	303,
 	307,
 	308
-], ut = class {
+];
+var Transport = class {
 	config;
 	request;
 	now;
 	signal;
 	server;
-	constructor(e, t, n, r) {
-		this.config = e, this.request = t, this.now = n, this.signal = r, this.server = new URL(e.server);
+	constructor(config, request, now, signal) {
+		this.config = config;
+		this.request = request;
+		this.now = now;
+		this.signal = signal;
+		this.server = new URL(config.server);
 	}
-	api(e, t, n) {
-		return this.response(new URL(`api/${e}`, this.server), t, !1, n);
+	api(path, token, body) {
+		return this.response(new URL(`api/${path}`, this.server), token, false, body);
 	}
-	async image(t, r) {
+	async image(raw, token) {
 		try {
-			let n = await this.response(this.imageURL(t), r, !0), i = await n.arrayBuffer();
-			if (!n.ok || i.byteLength === 0 || i.byteLength > 8388608) throw new e("image");
-			return i;
-		} catch (e) {
-			throw n(e, "image");
+			const response = await this.response(this.imageURL(raw), token, true);
+			const body = await response.arrayBuffer();
+			if (!response.ok || body.byteLength === 0 || body.byteLength > 8388608) throw new DeviceError("image");
+			return body;
+		} catch (error) {
+			throw failure(error, "image");
 		}
 	}
-	headers(e) {
-		let t = e ? { "Access-Token": e } : {};
-		return this.config.mode === "mirror" ? t : {
+	headers(token) {
+		const authorization = token ? { "Access-Token": token } : {};
+		if (this.config.mode === "mirror") return authorization;
+		return {
 			ID: this.config.id,
-			Model: r.model,
-			"FW-Version": ct,
-			Width: String(r.width),
-			Height: String(r.height),
-			...t
+			Model: screen.model,
+			"FW-Version": firmwareVersion,
+			Width: String(screen.width),
+			Height: String(screen.height),
+			...authorization
 		};
 	}
-	imageURL(t, n = this.server) {
-		let r;
+	imageURL(raw, base = this.server) {
+		let image;
 		try {
-			r = new URL(t, n);
+			image = new URL(raw, base);
 		} catch {
-			throw new e("image");
+			throw new DeviceError("image");
 		}
-		if (!["http:", "https:"].includes(r.protocol) || r.username || r.password) throw new e("image");
-		if (r.origin !== this.server.origin && r.origin !== this.config.imageOrigin) throw new e("image-origin", 3e4, r.origin);
-		return r;
+		if (!["http:", "https:"].includes(image.protocol) || image.username || image.password) throw new DeviceError("image");
+		if (image.origin !== this.server.origin && image.origin !== this.config.imageOrigin) throw new DeviceError("image-origin", 3e4, image.origin);
+		return image;
 	}
-	async response(t, n, r, i) {
-		let a = t.origin === this.server.origin;
-		for (let o = 0; o < 6; o++) {
+	async response(url, token, asset, body) {
+		let sendIdentity = url.origin === this.server.origin;
+		for (let hop = 0; hop < 6; hop++) {
 			this.signal?.throwIfAborted();
-			let o = await this.request(t.href, {
-				method: i === void 0 ? "GET" : "POST",
+			const response = await this.request(url.href, {
+				method: body === void 0 ? "GET" : "POST",
 				redirect: "manual",
 				signal: this.signal,
 				headers: {
-					...a ? this.headers(n) : {},
-					...!r && this.config.mode === "mirror" ? { Accept: "application/json" } : {},
-					...i === void 0 ? {} : { "Content-Type": "application/json" }
+					...sendIdentity ? this.headers(token) : {},
+					...!asset && this.config.mode === "mirror" ? { Accept: "application/json" } : {},
+					...body === void 0 ? {} : { "Content-Type": "application/json" }
 				},
-				body: i === void 0 ? void 0 : JSON.stringify(i)
+				body: body === void 0 ? void 0 : JSON.stringify(body)
 			});
-			if (o.status === 429) {
-				let t = o.headers.get("Retry-After"), n = t && /^\d+$/.test(t) ? Number(t) * 1e3 : Date.parse(t ?? "") - this.now();
-				throw new e("rate-limit", Number.isFinite(n) && n > 0 ? n : 6e4);
+			if (response.status === 429) {
+				const retry = response.headers.get("Retry-After");
+				const delay = retry && /^\d+$/.test(retry) ? Number(retry) * 1e3 : Date.parse(retry ?? "") - this.now();
+				throw new DeviceError("rate-limit", Number.isFinite(delay) && delay > 0 ? delay : 6e4);
 			}
-			if (!lt.includes(o.status)) return o;
-			await o.arrayBuffer();
-			let s = o.headers.get("Location");
-			if (!s) throw new e(r ? "image" : "response");
-			if (r) t = this.imageURL(s, t), a &&= t.origin === this.server.origin;
-			else {
-				let n = new URL(s, t);
-				if (n.origin !== this.server.origin || n.username || n.password) throw new e("response");
-				t = n;
+			if (!redirects.includes(response.status)) return response;
+			await response.arrayBuffer();
+			const location = response.headers.get("Location");
+			if (!location) throw new DeviceError(asset ? "image" : "response");
+			if (asset) {
+				url = this.imageURL(location, url);
+				sendIdentity &&= url.origin === this.server.origin;
+			} else {
+				const next = new URL(location, url);
+				if (next.origin !== this.server.origin || next.username || next.password) throw new DeviceError("response");
+				url = next;
 			}
-			[
+			if ([
 				301,
 				302,
 				303
-			].includes(o.status) && (i = void 0);
+			].includes(response.status)) body = void 0;
 		}
-		throw new e(r ? "image" : "response");
+		throw new DeviceError(asset ? "image" : "response");
 	}
-}, dt = /* @__PURE__ */ D(/* @__PURE__ */ E(), /* @__PURE__ */ ee(65536), /* @__PURE__ */ ne(), /* @__PURE__ */ le((e) => typeof e == "object" && !!e && !Array.isArray(e)));
-function ft(e, t) {
-	let n = typeof e == "number" || typeof e == "string" ? Number(e) : NaN;
-	return Number.isFinite(n) && n > 0 ? Math.min(Math.max(Math.round(n * 1e3), 1e3), 6048e5) : t;
+};
+// src/protocol/client.ts
+var replyJSON = v.pipe(v.string(), v.maxLength(65536), v.parseJson(), v.custom((value) => typeof value === "object" && value !== null && !Array.isArray(value)));
+function refreshDelay(value, fallback) {
+	const seconds = typeof value === "number" || typeof value === "string" ? Number(value) : NaN;
+	return Number.isFinite(seconds) && seconds > 0 ? Math.min(Math.max(Math.round(seconds * 1e3), 1e3), 6048e5) : fallback;
 }
-function Q(e) {
-	return typeof e == "string" ? e : "";
+function text(value) {
+	return typeof value === "string" ? value : "";
 }
-var $ = class {
+var Protocol = class {
 	config;
 	now;
 	transport;
-	constructor(e, t, n, r) {
-		this.config = e, this.now = n, this.transport = new ut(e, t, n, r);
+	constructor(config, request, now, signal) {
+		this.config = config;
+		this.now = now;
+		this.transport = new Transport(config, request, now, signal);
 	}
-	async api(t, r, i) {
+	async api(path, token, body) {
 		try {
-			let n = await this.transport.api(t, r, i), a = await n.text();
-			if (n.status === 401 || n.status === 403) throw new e("authentication");
+			const response = await this.transport.api(path, token, body);
+			const raw = await response.text();
+			if (response.status === 401 || response.status === 403) throw new DeviceError("authentication");
 			return {
-				status: n.status,
-				ok: n.ok,
-				raw: a
+				status: response.status,
+				ok: response.ok,
+				raw
 			};
-		} catch (e) {
-			throw n(e, "network");
+		} catch (error) {
+			throw failure(error, "network");
 		}
 	}
-	async read(t, n) {
-		let { status: r, ok: i, raw: a } = await this.api(t, n), o = (t === "display/current" || t === "current_screen") && [202, 404].includes(r), s = t === "setup" && r === 404;
-		if (!i && !o && !s) throw new e("network");
-		let c = /* @__PURE__ */ O(dt, a), l = c.success ? c.output : void 0;
-		if (o) {
-			if (t === "display/current" && r === 404 && /^The route (?:\S+\/)?api\/display\/current could not be found\.$/.test(Q(l?.message))) return this.read("current_screen", n);
-			throw new e("no-screen", this.config.mirrorRefreshDelay);
+	async read(path, token) {
+		const { status, ok, raw } = await this.api(path, token);
+		const waiting = (path === "display/current" || path === "current_screen") && [202, 404].includes(status);
+		const unregistered = path === "setup" && status === 404;
+		if (!ok && !waiting && !unregistered) throw new DeviceError("network");
+		const parsed = v.safeParse(replyJSON, raw);
+		const fields = parsed.success ? parsed.output : void 0;
+		if (waiting) {
+			if (path === "display/current" && status === 404 && /^The route (?:\S+\/)?api\/display\/current could not be found\.$/.test(text(fields?.message))) return this.read("current_screen", token);
+			throw new DeviceError("no-screen", this.config.mirrorRefreshDelay);
 		}
-		if (!l) throw new e(s ? "network" : "response");
-		if (t === "setup" && l.status === 404) return {
+		if (!fields) throw new DeviceError(unregistered ? "network" : "response");
+		if (path === "setup" && fields.status === 404) return {
 			status: 202,
-			reset_firmware: l.reset_firmware
+			reset_firmware: fields.reset_firmware
 		};
-		if (s) throw new e("network");
-		return t === "display" && r === 200 && !("status" in l) && Q(l.image_url).trim() ? {
-			...l,
+		if (unregistered) throw new DeviceError("network");
+		if (path === "display" && status === 200 && !("status" in fields) && text(fields.image_url).trim()) return {
+			...fields,
 			status: 0
-		} : l;
+		};
+		return fields;
 	}
-	reply(t, n, r) {
-		if (this.config.mode === "device" && t.reset_firmware === !0) throw new e("registration");
-		let i = t.status === 202;
-		if (!i && t.status !== n) throw new e(t.status === 401 || t.status === 403 ? "authentication" : "response");
-		let a = Q(t.filename);
+	reply(data, success, fixedRefreshDelay) {
+		if (this.config.mode === "device" && data.reset_firmware === true) throw new DeviceError("registration");
+		const waiting = data.status === 202;
+		if (!waiting && data.status !== success) throw new DeviceError(data.status === 401 || data.status === 403 ? "authentication" : "response");
+		const filename = text(data.filename);
 		return {
-			status: i ? "waiting" : "ready",
-			imageURL: Q(t.image_url),
-			filename: a.length <= 1024 ? a : "",
-			refreshDelay: r ?? ft(t.refresh_rate, i ? 3e4 : 3e5),
-			apiKey: Q(t.api_key),
-			friendlyId: Q(t.friendly_id).slice(0, 128),
-			skipUpdate: t.skip_update === !0,
-			updateFirmware: this.config.mode === "device" && t.update_firmware === !0
+			status: waiting ? "waiting" : "ready",
+			imageURL: text(data.image_url),
+			filename: filename.length <= 1024 ? filename : "",
+			refreshDelay: fixedRefreshDelay ?? refreshDelay(data.refresh_rate, waiting ? 3e4 : 3e5),
+			apiKey: text(data.api_key),
+			friendlyId: text(data.friendly_id).slice(0, 128),
+			skipUpdate: data.skip_update === true,
+			updateFirmware: this.config.mode === "device" && data.update_firmware === true
 		};
 	}
 	async setup() {
 		return this.reply(await this.read("setup", ""), 200);
 	}
-	async display(e) {
-		return this.reply(await this.read("display", e), 0);
+	async display(token) {
+		return this.reply(await this.read("display", token), 0);
 	}
-	async mirror(t) {
-		let n = await this.read("display/current", t);
-		if (n.status === 202 || n.status === 404) throw new e("no-screen", this.config.mirrorRefreshDelay);
-		return this.reply(n, 200, this.config.mirrorRefreshDelay);
+	async mirror(token) {
+		const data = await this.read("display/current", token);
+		if (data.status === 202 || data.status === 404) throw new DeviceError("no-screen", this.config.mirrorRefreshDelay);
+		return this.reply(data, 200, this.config.mirrorRefreshDelay);
 	}
-	image(e, t) {
-		return this.transport.image(e, t);
+	image(raw, token) {
+		return this.transport.image(raw, token);
 	}
-	async log(t, n) {
-		let { ok: r } = await this.api("log", t, { logs: [{
+	async log(token, code) {
+		const { ok } = await this.api("log", token, { logs: [{
 			id: this.config.id,
 			created_at: Math.floor(this.now() / 1e3),
-			message: `virtual-device:${n}`
+			message: `virtual-device:${code}`
 		}] });
-		if (!r) throw new e("network");
+		if (!ok) throw new DeviceError("network");
 	}
-}, pt = class {
+};
+// src/device/enrollment.ts
+var Enrollment = class {
 	runtime;
 	pending;
-	constructor(e) {
-		this.runtime = e;
+	constructor(runtime) {
+		this.runtime = runtime;
 	}
-	start(e) {
-		let t = new st(), n = new $(e, this.runtime.request, this.runtime.now, t.signal);
+	start(config) {
+		const operation = new Operation();
+		const protocol = new Protocol(config, this.runtime.request, this.runtime.now, operation.signal);
 		return {
-			operation: t,
-			reply: t.wait(n.setup()).finally(() => t.close())
+			operation,
+			reply: operation.wait(protocol.setup()).finally(() => operation.close())
 		};
 	}
-	async pair(e, t, n, r) {
-		let i = this.pending ??= this.start(e), a;
+	async pair(config, credential, credentials, operation) {
+		const pending = this.pending ??= this.start(config);
+		let reply;
 		try {
-			a = await r.wait(i.reply);
-		} catch (e) {
-			throw r.signal.aborted || (this.pending = void 0), e;
+			reply = await operation.wait(pending.reply);
+		} catch (error) {
+			if (!operation.signal.aborted) this.pending = void 0;
+			throw error;
 		}
-		return a.apiKey && (t = await r.wait(n.save(e.binding, a.apiKey, r))), this.pending = void 0, {
-			credential: t,
-			reply: a
+		if (reply.apiKey) credential = await operation.wait(credentials.save(config.binding, reply.apiKey, operation));
+		this.pending = void 0;
+		return {
+			credential,
+			reply
 		};
 	}
 	cancel() {
-		this.pending?.operation.cancel(), this.pending = void 0;
+		this.pending?.operation.cancel();
+		this.pending = void 0;
 	}
-}, mt = class {
+};
+// src/device/frames.ts
+var Frames = class {
 	state;
 	host;
 	credentials;
 	pending;
 	verified = "";
-	constructor(e, t, n) {
-		this.state = e, this.host = t, this.credentials = n;
+	constructor(state, host, credentials) {
+		this.state = state;
+		this.host = host;
+		this.credentials = credentials;
 	}
 	reset() {
-		this.pending = void 0, this.verified = "", Object.assign(this.state, {
+		this.pending = void 0;
+		this.verified = "";
+		Object.assign(this.state, {
 			image: void 0,
 			filename: "",
 			revision: 0,
-			waiting: !1,
+			waiting: false,
 			nextPollAt: 0,
 			retryAt: 0
 		});
 	}
-	async restore(e, n = !1) {
-		let r = this.state.image;
-		if (r && (n || this.verified !== r.src)) try {
-			this.state.image = await e.wait(this.host.image.load(r.src)), this.verified = this.state.image.src;
-		} catch (n) {
-			if (e.check(), t(n)) throw n;
+	async restore(operation, force = false) {
+		const image = this.state.image;
+		if (!image || !force && this.verified === image.src) return;
+		try {
+			this.state.image = await operation.wait(this.host.image.load(image.src));
+			this.verified = this.state.image.src;
+		} catch (error) {
+			operation.check();
+			if (cancelled(error)) throw error;
 			this.state.image = void 0;
 		}
 	}
-	recover(e) {
-		let t = e.frame;
-		this.pending || t?.model !== this.state.model || t.mode !== this.state.mode || this.state.image && t.revision === this.state.revision || (this.pending = t);
+	recover(credential) {
+		const frame = credential.frame;
+		if (!this.pending && frame?.model === this.state.model && frame.mode === this.state.mode && (!this.state.image || frame.revision !== this.state.revision)) this.pending = frame;
 	}
-	select(t, n, i) {
-		if (!(!n && this.state.image && (t.skipUpdate || t.filename && t.filename === this.state.filename) || n && !t.imageURL)) {
-			if (!t.imageURL) throw new e("response");
-			return this.pending = {
-				revision: Math.max(this.state.revision, i.frame?.revision ?? 0) + 1,
-				nextPollAt: this.state.nextPollAt,
-				mode: this.state.mode,
-				model: r.model,
-				imageURL: t.imageURL,
-				filename: t.filename,
-				pairing: n,
-				updateFirmware: t.updateFirmware
-			}, this.pending;
-		}
+	select(reply, pairing, credential) {
+		if (!pairing && this.state.image && (reply.skipUpdate || reply.filename && reply.filename === this.state.filename) || pairing && !reply.imageURL) return;
+		if (!reply.imageURL) throw new DeviceError("response");
+		this.pending = {
+			revision: Math.max(this.state.revision, credential.frame?.revision ?? 0) + 1,
+			nextPollAt: this.state.nextPollAt,
+			mode: this.state.mode,
+			model: screen.model,
+			imageURL: reply.imageURL,
+			filename: reply.filename,
+			pairing,
+			updateFirmware: reply.updateFirmware
+		};
+		return this.pending;
 	}
-	async load(e, t, n, r) {
-		(n.frame?.revision !== e.revision || n.frame.model !== e.model || n.frame.mode !== e.mode) && await r.wait(this.credentials.checkpoint(n, e, r), "credentials");
-		let i = await r.wait(t.image(e.imageURL, n.token)), a = await r.wait(this.host.image.load(i), "image"), o = e.revision === this.state.revision ? {
-			...e,
+	async load(frame, protocol, credential, operation) {
+		if (credential.frame?.revision !== frame.revision || credential.frame.model !== frame.model || credential.frame.mode !== frame.mode) await operation.wait(this.credentials.checkpoint(credential, frame, operation), "credentials");
+		const bytes = await operation.wait(protocol.image(frame.imageURL, credential.token));
+		const image = await operation.wait(this.host.image.load(bytes), "image");
+		const applied = frame.revision === this.state.revision ? {
+			...frame,
 			nextPollAt: this.state.nextPollAt,
 			pairing: this.state.waiting,
 			filename: this.state.filename
 		} : {
-			...e,
-			filename: e.pairing ? "" : e.filename
+			...frame,
+			filename: frame.pairing ? "" : frame.filename
 		};
-		return Object.assign(this.state, {
-			nextPollAt: o.nextPollAt,
+		Object.assign(this.state, {
+			nextPollAt: applied.nextPollAt,
 			retryAt: 0,
-			image: a,
-			filename: o.filename,
-			revision: o.revision
-		}), this.verified = a.src, this.pending = void 0, o;
+			image,
+			filename: applied.filename,
+			revision: applied.revision
+		});
+		this.verified = image.src;
+		this.pending = void 0;
+		return applied;
 	}
 };
 // src/device/diagnostics.ts
-async function ht(e, t, n, r, i) {
+async function sendDiagnostic(runtime, credentials, config, code, operation) {
 	try {
-		let a = await i.wait(t.read(n.binding, i));
-		return a.token ? (await i.wait(new $(n, e.request, e.now, i.signal).log(a.token, r)), "sent") : "unavailable";
+		const credential = await operation.wait(credentials.read(config.binding, operation));
+		if (!credential.token) return "unavailable";
+		await operation.wait(new Protocol(config, runtime.request, runtime.now, operation.signal).log(credential.token, code));
+		return "sent";
 	} catch {
 		return "failed";
 	} finally {
-		i.close();
+		operation.close();
 	}
 }
 // src/device/controller.ts
-function gt(e, t, n) {
+function screenStatus(mode, waiting, updateFirmware) {
 	return {
-		phase: t ? e === "mirror" ? "empty" : "pairing" : "ready",
-		updateFirmware: n
+		phase: waiting ? mode === "mirror" ? "empty" : "pairing" : "ready",
+		updateFirmware
 	};
 }
-function _t(t) {
-	return t.connection === "connected" ? t.needsToken ? {
+function initialStatus(state) {
+	if (state.connection !== "connected") return { phase: state.connection };
+	if (state.needsToken) return {
 		phase: "error",
-		error: new e("authentication")
-	} : t.waiting || t.image ? gt(t.mode, t.waiting) : { phase: "loading" } : { phase: t.connection };
+		error: new DeviceError("authentication")
+	};
+	if (state.waiting || state.image) return screenStatus(state.mode, state.waiting);
+	return { phase: "loading" };
 }
-var vt = class {
+var Device = class {
 	runtime;
 	state;
 	credentials;
@@ -1614,8 +676,13 @@ var vt = class {
 	active;
 	diagnostic;
 	status;
-	constructor(e) {
-		this.runtime = e, this.state = $e(e.storage, e.makeId), this.credentials = new ot(e.host, e.storage), this.frames = new mt(this.state, e.host, this.credentials), this.enrollment = new pt(e), this.status = _t(this.state);
+	constructor(runtime) {
+		this.runtime = runtime;
+		this.state = restore(runtime.storage, runtime.makeId);
+		this.credentials = new Credentials(runtime.host, runtime.storage);
+		this.frames = new Frames(this.state, runtime.host, this.credentials);
+		this.enrollment = new Enrollment(runtime);
+		this.status = initialStatus(this.state);
 	}
 	get image() {
 		return this.disconnected ? void 0 : this.state.image;
@@ -1642,142 +709,221 @@ var vt = class {
 		return this.status.phase === "error" ? this.status.error.code : void 0;
 	}
 	get canSendDiagnostic() {
-		return !!(this.current && this.mode === "device" && !this.disconnected && this.lastFailure);
+		return Boolean(this.current && this.mode === "device" && !this.disconnected && this.lastFailure);
 	}
 	save() {
-		this.runtime.storage.setItem(Ke, JSON.stringify(this.state));
+		this.runtime.storage.setItem(stateKey, JSON.stringify(this.state));
 	}
-	schedule(e) {
-		this.runtime.host.schedule(Math.min(864e5, Math.max(1e3, Math.round(e))));
+	schedule(delay) {
+		this.runtime.host.schedule(Math.min(864e5, Math.max(1e3, Math.round(delay))));
 	}
-	configure(e) {
+	configure(inputs) {
 		this.current = void 0;
-		let t = o(e, this.state.generatedId), n = this.state.binding !== t.binding, i = this.state.mode !== t.mode;
-		return (n || i) && this.action === "pair" && (this.action = "refresh"), (n || i || this.state.model !== r.model) && (this.enrollment.cancel(), this.frames.reset(), this.state.binding = t.binding, this.state.mode = t.mode, this.state.model = r.model, this.state.needsToken = !1, n && (this.state.friendlyId = ""), this.status = { phase: "loading" }, this.save()), this.current = t, t;
+		const config = configuration(inputs, this.state.generatedId);
+		const bindingChanged = this.state.binding !== config.binding;
+		const modeChanged = this.state.mode !== config.mode;
+		if ((bindingChanged || modeChanged) && this.action === "pair") this.action = "refresh";
+		if (bindingChanged || modeChanged || this.state.model !== screen.model) {
+			this.enrollment.cancel();
+			this.frames.reset();
+			this.state.binding = config.binding;
+			this.state.mode = config.mode;
+			this.state.model = screen.model;
+			this.state.needsToken = false;
+			if (bindingChanged) this.state.friendlyId = "";
+			this.status = { phase: "loading" };
+			this.save();
+		}
+		this.current = config;
+		return config;
 	}
-	async cleanDisconnect(e) {
-		await e.wait(this.credentials.clear(e)), this.frames.reset(), this.state.friendlyId = "", this.state.needsToken = !1, this.state.connection = "disconnected", this.status = { phase: "disconnected" }, this.save();
+	async cleanDisconnect(operation) {
+		await operation.wait(this.credentials.clear(operation));
+		this.frames.reset();
+		this.state.friendlyId = "";
+		this.state.needsToken = false;
+		this.state.connection = "disconnected";
+		this.status = { phase: "disconnected" };
+		this.save();
 	}
-	async showFrame(e, t, n, r) {
-		let i = await r.wait(this.frames.load(e, t, n, r));
-		this.publish(i.pairing, i.updateFirmware);
+	async showFrame(frame, protocol, credential, operation) {
+		const applied = await operation.wait(this.frames.load(frame, protocol, credential, operation));
+		this.publish(applied.pairing, applied.updateFirmware);
 	}
-	publish(e, t) {
-		this.state.waiting = e, this.status = gt(this.mode, e, t), this.save(), this.schedule(this.state.nextPollAt - this.runtime.now());
+	publish(waiting, updateFirmware) {
+		this.state.waiting = waiting;
+		this.status = screenStatus(this.mode, waiting, updateFirmware);
+		this.save();
+		this.schedule(this.state.nextPollAt - this.runtime.now());
 	}
-	async accept(e, t, n, r, i = e.status === "waiting") {
-		this.state.friendlyId = e.friendlyId || this.state.friendlyId, this.state.nextPollAt = this.runtime.now() + e.refreshDelay, this.state.waiting = i;
-		let a = this.frames.select(e, i, n);
-		a ? await this.showFrame(a, t, n, r) : this.publish(i, e.updateFirmware);
+	async accept(reply, protocol, credential, operation, waiting = reply.status === "waiting") {
+		this.state.friendlyId = reply.friendlyId || this.state.friendlyId;
+		this.state.nextPollAt = this.runtime.now() + reply.refreshDelay;
+		this.state.waiting = waiting;
+		const frame = this.frames.select(reply, waiting, credential);
+		if (frame) await this.showFrame(frame, protocol, credential, operation);
+		else this.publish(waiting, reply.updateFirmware);
 	}
-	async scheduled(e) {
+	async scheduled(env) {
 		this.cancelWork();
-		let n = new st();
-		this.active = n;
+		const operation = new Operation();
+		this.active = operation;
 		try {
-			if (this.state.connection === "disconnecting" && await n.wait(this.cleanDisconnect(n)), this.disconnected && this.action !== "connect") {
+			if (this.state.connection === "disconnecting") await operation.wait(this.cleanDisconnect(operation));
+			if (this.disconnected && this.action !== "connect") {
 				this.runtime.host.schedule(null);
 				return;
 			}
-			let t = this.configure(e.inputs);
-			this.disconnected && (this.state.connection = "connected", this.status = { phase: "loading" }, this.save()), await this.poll(e.reason, t, n);
-		} catch (e) {
-			!t(e) && this.active === n && await this.handleFailure(e, n);
+			const config = this.configure(env.inputs);
+			if (this.disconnected) {
+				this.state.connection = "connected";
+				this.status = { phase: "loading" };
+				this.save();
+			}
+			await this.poll(env.reason, config, operation);
+		} catch (error) {
+			if (!cancelled(error) && this.active === operation) await this.handleFailure(error, operation);
 		} finally {
-			n.close(), this.active === n && (this.active = void 0);
+			operation.close();
+			if (this.active === operation) this.active = void 0;
 		}
 	}
-	async poll(t, n, r) {
-		let i = this.action !== void 0 || t === "manual" || t === "inputs-changed";
-		if (this.state.needsToken && !i) {
+	async poll(reason, config, operation) {
+		const requested = this.action !== void 0 || reason === "manual" || reason === "inputs-changed";
+		if (this.state.needsToken && !requested) {
 			this.runtime.host.schedule(null);
 			return;
 		}
-		if (!await r.wait(this.runtime.host.caniuse("image.load")) || !await r.wait(this.runtime.host.caniuse("setSecret"))) throw new e("unsupported");
-		this.action === "pair" && await r.wait(this.clearPairing(r));
-		let a = await r.wait(this.credentials.read(n.binding, r)), o = t === "cache-missing";
-		if (await r.wait(this.frames.restore(r, o)), this.action = void 0, this.state.needsToken = !1, !a.token && n.mode === "mirror") {
-			this.frames.pending = void 0, this.state.waiting = !1, this.status = { phase: "unconfigured" }, this.save(), this.runtime.host.schedule(null);
+		if (!await operation.wait(this.runtime.host.caniuse("image.load")) || !await operation.wait(this.runtime.host.caniuse("setSecret"))) throw new DeviceError("unsupported");
+		if (this.action === "pair") await operation.wait(this.clearPairing(operation));
+		let credential = await operation.wait(this.credentials.read(config.binding, operation));
+		const cacheMissing = reason === "cache-missing";
+		await operation.wait(this.frames.restore(operation, cacheMissing));
+		this.action = void 0;
+		this.state.needsToken = false;
+		if (!credential.token && config.mode === "mirror") {
+			this.frames.pending = void 0;
+			this.state.waiting = false;
+			this.status = { phase: "unconfigured" };
+			this.save();
+			this.runtime.host.schedule(null);
 			return;
 		}
-		this.frames.recover(a);
-		let s = i || o, c = this.runtime.now();
-		if (!s && c < this.state.retryAt) {
-			this.schedule(this.state.retryAt - c);
+		this.frames.recover(credential);
+		const force = requested || cacheMissing;
+		const now = this.runtime.now();
+		if (!force && now < this.state.retryAt) {
+			this.schedule(this.state.retryAt - now);
 			return;
 		}
-		let l = new $(n, this.runtime.request, this.runtime.now, r.signal);
+		const protocol = new Protocol(config, this.runtime.request, this.runtime.now, operation.signal);
 		if (this.frames.pending) {
-			await this.showFrame(this.frames.pending, l, a, r);
+			await this.showFrame(this.frames.pending, protocol, credential, operation);
 			return;
 		}
-		if (!s && (this.state.image || this.state.waiting) && c < this.state.nextPollAt) {
-			this.schedule(this.state.nextPollAt - c);
+		if (!force && (this.state.image || this.state.waiting) && now < this.state.nextPollAt) {
+			this.schedule(this.state.nextPollAt - now);
 			return;
 		}
-		if (this.state.retryAt = 0, a.token) this.enrollment.cancel();
-		else {
-			let e = await r.wait(this.enrollment.pair(n, a, this.credentials, r));
-			if (a = e.credential, !a.token || e.reply.status === "waiting") {
-				await this.accept(e.reply, l, a, r, !0);
+		this.state.retryAt = 0;
+		if (!credential.token) {
+			const paired = await operation.wait(this.enrollment.pair(config, credential, this.credentials, operation));
+			credential = paired.credential;
+			if (!credential.token || paired.reply.status === "waiting") {
+				await this.accept(paired.reply, protocol, credential, operation, true);
 				return;
 			}
-			this.state.friendlyId = e.reply.friendlyId || this.state.friendlyId;
-		}
-		let u = await r.wait(n.mode === "mirror" ? l.mirror(a.token) : l.display(a.token));
-		await this.accept(u, l, a, r);
+			this.state.friendlyId = paired.reply.friendlyId || this.state.friendlyId;
+		} else this.enrollment.cancel();
+		const reply = await operation.wait(config.mode === "mirror" ? protocol.mirror(credential.token) : protocol.display(credential.token));
+		await this.accept(reply, protocol, credential, operation);
 	}
-	async clearPairing(e) {
-		await e.wait(this.credentials.clear(e)), this.frames.pending = void 0, this.state.friendlyId = "", this.state.nextPollAt = 0, this.state.retryAt = 0;
+	async clearPairing(operation) {
+		await operation.wait(this.credentials.clear(operation));
+		this.frames.pending = void 0;
+		this.state.friendlyId = "";
+		this.state.nextPollAt = 0;
+		this.state.retryAt = 0;
 	}
-	async handleFailure(e, r) {
-		let i = n(e, "network");
-		if (i.code === "registration") try {
-			await r.wait(this.clearPairing(r));
-		} catch (e) {
-			if (t(e)) return;
-			i = n(e, "credentials");
+	async handleFailure(error, operation) {
+		let problem = failure(error, "network");
+		if (problem.code === "registration") try {
+			await operation.wait(this.clearPairing(operation));
+		} catch (storageError) {
+			if (cancelled(storageError)) return;
+			problem = failure(storageError, "credentials");
 		}
-		i.code === "no-screen" ? (this.state.waiting = !0, this.status = { phase: "empty" }) : this.status = {
+		if (problem.code === "no-screen") {
+			this.state.waiting = true;
+			this.status = { phase: "empty" };
+		} else this.status = {
 			phase: "error",
-			error: i
-		}, this.state.needsToken = i.code === "authentication", this.state.retryAt = this.runtime.now() + i.retryAfter, this.frames.pending || (this.state.nextPollAt = this.state.retryAt), this.save(), i.code === "authentication" ? this.runtime.host.schedule(null) : i.code !== "unsupported" && this.schedule(i.retryAfter);
+			error: problem
+		};
+		this.state.needsToken = problem.code === "authentication";
+		this.state.retryAt = this.runtime.now() + problem.retryAfter;
+		if (!this.frames.pending) this.state.nextPollAt = this.state.retryAt;
+		this.save();
+		if (problem.code === "authentication") this.runtime.host.schedule(null);
+		else if (problem.code !== "unsupported") this.schedule(problem.retryAfter);
 	}
 	async sendLog() {
-		let { status: e, current: t } = this;
-		if (e.phase !== "error" || t?.mode !== "device" || this.disconnected) return;
+		const { status, current } = this;
+		if (status.phase !== "error" || current?.mode !== "device" || this.disconnected) return;
 		this.diagnostic?.cancel();
-		let n = new st();
-		this.diagnostic = n;
-		let r = await ht(this.runtime, this.credentials, t, e.error.code, n);
-		this.diagnostic === n && (this.diagnostic = void 0, this.status === e && (this.status = {
-			...e,
-			diagnostic: r
-		}, this.runtime.host.invalidate()));
+		const operation = new Operation();
+		this.diagnostic = operation;
+		const diagnostic = await sendDiagnostic(this.runtime, this.credentials, current, status.error.code, operation);
+		if (this.diagnostic !== operation) return;
+		this.diagnostic = void 0;
+		if (this.status === status) {
+			this.status = {
+				...status,
+				diagnostic
+			};
+			this.runtime.host.invalidate();
+		}
 	}
 	refresh() {
-		this.disconnected || this.request("refresh");
+		if (!this.disconnected) this.request("refresh");
 	}
 	pairAgain() {
-		this.mode !== "device" || this.disconnected || (this.enrollment.cancel(), this.request("pair"));
+		if (this.mode !== "device" || this.disconnected) return;
+		this.enrollment.cancel();
+		this.request("pair");
 	}
 	disconnect() {
-		this.state.connection !== "disconnected" && (this.state.connection = "disconnecting", this.status = { phase: "disconnecting" }, this.action = void 0, this.save(), this.enrollment.cancel(), this.cancelWork(), this.schedule(1e3), this.runtime.host.invalidate());
+		if (this.state.connection === "disconnected") return;
+		this.state.connection = "disconnecting";
+		this.status = { phase: "disconnecting" };
+		this.action = void 0;
+		this.save();
+		this.enrollment.cancel();
+		this.cancelWork();
+		this.schedule(1e3);
+		this.runtime.host.invalidate();
 	}
 	connect() {
-		this.canConnect && this.request("connect");
+		if (this.canConnect) this.request("connect");
 	}
 	openServer() {
-		let e = this.current?.server ?? "https://trmnl.com/", t = this.mode === "mirror" ? "devices" : "start";
-		this.runtime.host.openURL(new URL(e).origin === "https://trmnl.com" ? `https://trmnl.com/${t}` : e);
+		const server = this.current?.server ?? "https://trmnl.com/";
+		const path = this.mode === "mirror" ? "devices" : "start";
+		this.runtime.host.openURL(new URL(server).origin === "https://trmnl.com" ? `https://trmnl.com/${path}` : server);
 	}
-	request(e) {
-		this.cancelWork(), this.action !== "pair" && (this.action = e), this.schedule(1e3);
+	request(action) {
+		this.cancelWork();
+		if (this.action !== "pair") this.action = action;
+		this.schedule(1e3);
 	}
 	cancelWork() {
-		this.active?.cancel(), this.diagnostic?.cancel(), this.diagnostic = void 0;
+		this.active?.cancel();
+		this.diagnostic?.cancel();
+		this.diagnostic = void 0;
 	}
-}, yt = {
+};
+// src/ui/messages.ts
+var english = {
 	actions: {
 		server: "Open TRMNL server",
 		connect: "Connect",
@@ -1812,10 +958,11 @@ var vt = class {
 		unavailable: "Pair the device to send diagnostics"
 	},
 	firmware: "No firmware update needed",
-	allowImageOrigin: (e) => `Allow image access from ${e}`,
-	deviceId: (e) => `Device ID ${e}`,
-	pairingCode: (e) => `Pairing code ${e}`
-}, bt = {
+	allowImageOrigin: (origin) => `Allow image access from ${origin}`,
+	deviceId: (id) => `Device ID ${id}`,
+	pairingCode: (code) => `Pairing code ${code}`
+};
+var simplifiedChinese = {
 	actions: {
 		server: "打开服务端",
 		connect: "连接",
@@ -1850,126 +997,140 @@ var vt = class {
 		unavailable: "配对后才能发送诊断"
 	},
 	firmware: "无需更新固件",
-	allowImageOrigin: (e) => `请授权图片来源 ${e}`,
-	deviceId: (e) => `设备 ID ${e}`,
-	pairingCode: (e) => `配对码 ${e}`
+	allowImageOrigin: (origin) => `请授权图片来源 ${origin}`,
+	deviceId: (id) => `设备 ID ${id}`,
+	pairingCode: (code) => `配对码 ${code}`
 };
-function xt(e) {
-	return e && /^zh(?:$|-(?:hans|cn|sg)(?:-|$))/i.test(e) ? bt : yt;
+function messagesFor(language) {
+	return language && /^zh(?:$|-(?:hans|cn|sg)(?:-|$))/i.test(language) ? simplifiedChinese : english;
 }
-function St(e, t = yt) {
-	if (e.phase === "error") {
-		let n = t.errors, r = e.error.code === "image-origin" ? t.allowImageOrigin(e.error.origin) : n[e.error.code] ?? t.errors.network;
-		return e.diagnostic ? `${r} · ${t.diagnostics[e.diagnostic]}` : r;
+function statusMessage(status, messages = english) {
+	if (status.phase === "error") {
+		const errors = messages.errors;
+		const text = status.error.code === "image-origin" ? messages.allowImageOrigin(status.error.origin) : errors[status.error.code] ?? messages.errors.network;
+		return status.diagnostic ? `${text} · ${messages.diagnostics[status.diagnostic]}` : text;
 	}
-	return e.phase === "ready" ? e.updateFirmware ? t.firmware : "" : t.status[e.phase];
+	if (status.phase === "ready") return status.updateFirmware ? messages.firmware : "";
+	return messages.status[status.phase];
 }
 // src/ui/view.ts
-var Ct = /^(?:iconify:)?[a-z0-9-]+:[a-z0-9-]+$/;
-function wt(e, t) {
-	let n = {
-		label: t.server,
-		onClick: () => e.openServer()
+var iconifyName = /^(?:iconify:)?[a-z0-9-]+:[a-z0-9-]+$/;
+function actions(device, labels) {
+	const server = {
+		label: labels.server,
+		onClick: () => device.openServer()
 	};
-	return e.phase === "disconnecting" ? [n] : e.disconnected ? [e.canConnect ? {
-		label: t.connect,
-		onClick: () => e.connect()
+	if (device.phase === "disconnecting") return [server];
+	if (device.disconnected) return [device.canConnect ? {
+		label: labels.connect,
+		onClick: () => device.connect()
 	} : {
-		label: t.retryDisconnect,
-		onClick: () => e.disconnect()
-	}, n] : [
+		label: labels.retryDisconnect,
+		onClick: () => device.disconnect()
+	}, server];
+	return [
 		{
 			label: "Refresh",
-			onClick: () => e.refresh()
+			onClick: () => device.refresh()
 		},
-		...e.mode === "device" ? [{
-			label: t.pair,
-			onClick: () => e.pairAgain()
+		...device.mode === "device" ? [{
+			label: labels.pair,
+			onClick: () => device.pairAgain()
 		}] : [],
-		n,
+		server,
 		{
-			label: t.disconnect,
-			onClick: () => e.disconnect()
+			label: labels.disconnect,
+			onClick: () => device.disconnect()
 		},
-		...e.canSendDiagnostic ? [{
-			label: t.diagnose,
-			onClick: () => e.sendLog()
+		...device.canSendDiagnostic ? [{
+			label: labels.diagnose,
+			onClick: () => device.sendLog()
 		}] : []
 	];
 }
-function Tt(e, { trayIcon: t, platform: n, language: a } = {}) {
-	let o = typeof t == "string" ? t.trim() : "", s = o && !Ct.test(o) ? o : "", c = e.image, { width: l, height: u } = r, d = xt(a), f = St(e.status, d), p = e.phase === "pairing" || e.lastFailure === "registration", m = [
-		f,
-		...p ? [d.deviceId(e.id)] : [],
-		...p && e.friendlyId ? [d.pairingCode(e.friendlyId)] : []
-	].filter(Boolean), h = wt(e, d.actions);
-	m.length && h.push({ separator: !0 }, ...m.map((e) => ({
-		label: e,
-		disabled: !0
+function renderDevice(device, { trayIcon, platform, language } = {}) {
+	const icon = typeof trayIcon === "string" ? trayIcon.trim() : "";
+	const title = icon && !iconifyName.test(icon) ? icon : "";
+	const image = device.image;
+	const { width, height } = screen;
+	const messages = messagesFor(language);
+	const message = statusMessage(device.status, messages);
+	const pairing = device.phase === "pairing" || device.lastFailure === "registration";
+	const details = [
+		message,
+		...pairing ? [messages.deviceId(device.id)] : [],
+		...pairing && device.friendlyId ? [messages.pairingCode(device.friendlyId)] : []
+	].filter(Boolean);
+	const menu = actions(device, messages.actions);
+	if (details.length) menu.push({ separator: true }, ...details.map((label) => ({
+		label,
+		disabled: true
 	})));
-	let g = c ? {
+	const widget = image ? {
 		type: "Image",
-		props: { src: c.src }
+		props: { src: image.src }
 	} : { type: "Spacer" };
 	return {
 		tray: {
-			...s ? {
-				title: s,
-				icon: n === "darwin" ? null : i
-			} : { icon: o || "lucide:monitor" },
-			iconTemplate: !0,
-			menu: h
+			...title ? {
+				title,
+				icon: platform === "darwin" ? null : dashboardIcon
+			} : { icon: icon || "lucide:monitor" },
+			iconTemplate: true,
+			menu
 		},
 		panel: {
 			type: "Column",
 			props: {
-				preferredWidth: l,
-				preferredHeight: u,
-				fill: !0,
-				safeArea: !0,
-				clip: !0
+				preferredWidth: width,
+				preferredHeight: height,
+				fill: true,
+				safeArea: true,
+				clip: true
 			},
-			children: c ? [{
+			children: image ? [{
 				type: "Image",
 				props: {
-					src: c.src,
-					width: l,
-					height: u,
+					src: image.src,
+					width,
+					height,
 					fit: "contain",
-					absolute: !0,
+					absolute: true,
 					left: "50%",
 					top: "50%",
-					marginLeft: -l / 2,
-					marginTop: -u / 2
+					marginLeft: -width / 2,
+					marginTop: -height / 2
 				}
 			}] : []
 		},
 		widget: {
-			small: g,
-			medium: g,
-			large: g
+			small: widget,
+			medium: widget,
+			large: widget
 		}
 	};
 }
 // src/index.ts
-var Et = new vt({
+var device = new Device({
 	host: $metrix,
 	storage: localStorage,
 	request: fetch,
 	now: Date.now,
-	makeId: s
-}), Dt, Ot = {
-	async event(e, t) {
-		e === "lifecycle" && t?.type === "start" && await $metrix.caniuse("app.locale") && (Dt = await $metrix.system("app.locale"));
+	makeId: virtualDeviceId
+});
+var language;
+var src_default = {
+	async event(name, payload) {
+		if (name === "lifecycle" && payload?.type === "start" && await $metrix.caniuse("app.locale")) language = await $metrix.system("app.locale");
 	},
-	scheduled: (e) => Et.scheduled(e),
-	render: (e) => Tt(Et, {
-		trayIcon: e.inputs.tray_icon,
+	scheduled: (env) => device.scheduled(env),
+	render: (env) => renderDevice(device, {
+		trayIcon: env.inputs.tray_icon,
 		platform: $metrix.platform,
-		language: Dt
+		language
 	})
 };
-export { Ot as default };
+export { src_default as default };
 
   ]]></script>
 </bar>

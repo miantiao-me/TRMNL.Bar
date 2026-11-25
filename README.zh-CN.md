@@ -8,7 +8,7 @@
 
 ## 安装
 
-下载 [TRMNL.bar](dist/TRMNL.bar?raw=1)，在 Metrix.Bar 0.3.2 或更新版本中选择「导入 .bar…」，打开下载的文件。看板设置和菜单栏操作默认使用英语，支持简体中文。更改 Metrix.Bar 的语言后，重启应用即可更新看板菜单。
+下载 [TRMNL.bar](dist/TRMNL.bar?raw=1)，在 Metrix.Bar 0.3.2 或更新版本中选择「导入 .bar…」，打开下载的文件。看板设置和菜单栏操作默认使用英语，支持简体中文。更改 Metrix.Bar 的语言后，重启应用即可更新看板菜单。运行库未缓存时，Metrix.Bar 需要访问 `esm.sh` 才能加载看板。
 
 ## 连接
 

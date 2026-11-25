@@ -10,7 +10,17 @@ export default defineConfig({
   build: {
     emptyOutDir: false,
     target: "es2023",
-    minify: true,
+    minify: false,
+    rolldownOptions: {
+      external: ["@noble/ciphers/aes.js", "@noble/ciphers/utils.js", "valibot"],
+      output: {
+        paths: {
+          "@noble/ciphers/aes.js": "https://esm.sh/@noble/ciphers@2.4.0/aes.js?target=es2022",
+          "@noble/ciphers/utils.js": "https://esm.sh/@noble/ciphers@2.4.0/utils.js?target=es2022",
+          valibot: "https://esm.sh/valibot@1.5.0?bundle&target=es2022",
+        },
+      },
+    },
     lib: { entry: resolve(root, "src/index.ts"), formats: ["es"], fileName: "worker" },
   },
   fmt: { ignorePatterns: ["AGENTS.md"] },

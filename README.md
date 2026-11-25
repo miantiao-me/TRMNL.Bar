@@ -8,7 +8,7 @@ Show TRMNL screens in [Metrix.Bar](https://metrix.bar/). Connect a virtual devic
 
 ## Install
 
-Download [TRMNL.bar](dist/TRMNL.bar?raw=1), then choose **Import .bar…** in Metrix.Bar 0.3.2 or later and select the file. Dashboard settings and menu bar actions use English by default and support Simplified Chinese. Restart Metrix.Bar after changing its language to update the dashboard’s menu.
+Download [TRMNL.bar](dist/TRMNL.bar?raw=1), then choose **Import .bar…** in Metrix.Bar 0.3.2 or later and select the file. Dashboard settings and menu bar actions use English by default and support Simplified Chinese. Restart Metrix.Bar after changing its language to update the dashboard’s menu. Metrix.Bar needs access to `esm.sh` to load the dashboard’s runtime libraries when they are absent from its cache.
 
 ## Connect
 
